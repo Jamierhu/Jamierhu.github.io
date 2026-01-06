@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindle 天气日历</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #fff;
+            color: #000;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            font-size: 18px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .weather-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .weather-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .weather-icon {
+            font-size: 48px;
+        }
+        
+        .weather-temp {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        
+        .weather-desc {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .weather-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .detail-item {
+            text-align: center;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+        }
+        
+        .calendar-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .today-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .today-date {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .today-weekday {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        .today-lunar {
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .huangli-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+        }
+        
+        .huangli-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .huangli-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .huangli-item {
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+        }
+        
+        .huangli-item h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .huangli-item p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 20px;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 3px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Kindle 天气日历</h1>
+            <div id="location">定位中...</div>
+        </div>
+        
+        <div id="weather-container" class="weather-section" style="display: none;">
+            <div class="weather-main">
+                <div class="weather-icon" id="weather-icon">☀️</div>
+                <div class="weather-temp" id="temp">--°C</div>
+            </div>
+            <div class="weather-desc" id="weather-desc">获取天气中...</div>
+            <div class="weather-details">
+                <div class="detail-item">
+                    <div>日出</div>
+                    <div id="sunrise">--:--</div>
+                </div>
+                <div class="detail-item">
+                    <div>日落</div>
+                    <div id="sunset">--:--</div>
+                </div>
+                <div class="detail-item">
+                    <div>湿度</div>
+                    <div id="humidity">--%</div>
+                </div>
+                <div class="detail-item">
+                    <div>风速</div>
+                    <div id="wind-speed">-- m/s</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calendar-section">
+            <div class="today-info">
+                <div class="today-date" id="today-date">2026年1月6日</div>
+                <div class="today-weekday" id="today-weekday">星期二</div>
+                <div class="today-lunar" id="today-lunar">农历十一月廿七</div>
+            </div>
+            
+            <div class="huangli-section">
+                <div class="huangli-title">黄历</div>
+                <div class="huangli-content">
+                    <div class="huangli-item">
+                        <h4>宜</h4>
+                        <p id="huangli-yi">祭祀、沐浴、破屋、坏垣、余事勿取</p>
+                    </div>
+                    <div class="huangli-item">
+                        <h4>忌</h4>
+                        <p id="huangli-ji">嫁娶、开市、入宅、安床、作灶</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 天气API配置（使用OpenWeatherMap免费API）
+        const WEATHER_API_KEY = 'YOUR_API_KEY'; // 需要替换为实际的API密钥
+        const WEATHER_API_URL = 'https://api.openweathermap.org/data/2.5/weather';
+        
+        // 全局变量
+        let currentLocation = null;
+        
+        // 农历数据
+        const lunarInfo = [
+            0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+            0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+            0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+            0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+            0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+            0x06ca0,0x0b550,0x15355,0x04da0,0x0a5d0,0x14573,0x052d0,0x0a9a8,0x0e950,0x06aa0,
+            0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+            0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b5a0,0x195a6,
+            0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+            0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+            0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+            0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+            0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+            0x05aa0,0x076a3,0x096d0,0x04bd7,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+            0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0
+        ];
+        
+        const solarMonth = [31,28,31,30,31,30,31,31,30,31,30,31];
+        const Gan = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+        const Zhi = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+        const Animals = ["鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪"];
+        const lunarMonth = ["正","二","三","四","五","六","七","八","九","十","十一","腊"];
+        const lunarDayName = ["初","十","廿","三"];
+        const jieqi = [
+            "小寒","大寒","立春","雨水","惊蛰","春分","清明","谷雨","立夏","小满",
+            "芒种","夏至","小暑","大暑","立秋","处暑","白露","秋分","寒露","霜降",
+            "立冬","小雪","大雪","冬至"
+        ];
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            displayTodayInfo();
+            getLocation();
+        });
+        
+        // 获取用户位置
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        currentLocation = {
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude
+                        };
+                        document.getElementById('location').textContent = `纬度: ${currentLocation.lat.toFixed(4)}, 经度: ${currentLocation.lon.toFixed(4)}`;
+                        getWeather();
+                    },
+                    error => {
+                        document.getElementById('location').textContent = '定位失败: ' + error.message;
+                        // 使用默认位置（北京）
+                        currentLocation = { lat: 39.9042, lon: 116.4074 };
+                        document.getElementById('location').textContent += ' | 使用默认位置: 北京';
+                        getWeather();
+                    }
+                );
+            } else {
+                document.getElementById('location').textContent = '浏览器不支持地理定位';
+                // 使用默认位置（北京）
+                currentLocation = { lat: 39.9042, lon: 116.4074 };
+                document.getElementById('location').textContent += ' | 使用默认位置: 北京';
+                getWeather();
+            }
+        }
+        
+        // 获取天气数据
+        function getWeather() {
+            if (!currentLocation) return;
+            
+            const url = `${WEATHER_API_URL}?lat=${currentLocation.lat}&lon=${currentLocation.lon}&appid=${WEATHER_API_KEY}&units=metric&lang=zh_cn`;
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    displayWeather(data);
+                })
+                .catch(error => {
+                    document.getElementById('weather-container').style.display = 'block';
+                    document.getElementById('weather-desc').textContent = '天气获取失败';
+                    console.error('获取天气失败:', error);
+                });
+        }
+        
+        // 显示天气数据
+        function displayWeather(data) {
+            // 天气图标映射
+            const weatherIcons = {
+                '01d': '☀️', '01n': '🌙',
+                '02d': '⛅', '02n': '☁️',
+                '03d': '☁️', '03n': '☁️',
+                '04d': '☁️', '04n': '☁️',
+                '09d': '🌧️', '09n': '🌧️',
+                '10d': '🌦️', '10n': '🌧️',
+                '11d': '⛈️', '11n': '⛈️',
+                '13d': '❄️', '13n': '❄️',
+                '50d': '🌫️', '50n': '🌫️'
+            };
+            
+            document.getElementById('weather-icon').textContent = weatherIcons[data.weather[0].icon] || '🌤️';
+            document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°C`;
+            document.getElementById('weather-desc').textContent = data.weather[0].description;
+            
+            // 转换时间戳为本地时间
+            const sunriseTime = new Date(data.sys.sunrise * 1000);
+            const sunsetTime = new Date(data.sys.sunset * 1000);
+            
+            document.getElementById('sunrise').textContent = sunriseTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('sunset').textContent = sunsetTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('humidity').textContent = `${data.main.humidity}%`;
+            document.getElementById('wind-speed').textContent = `${data.wind.speed} m/s`;
+            
+            document.getElementById('weather-container').style.display = 'block';
+        }
+        
+        // 显示当天信息
+        function displayTodayInfo() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth() + 1;
+            const day = today.getDate();
+            
+            // 显示阳历日期
+            document.getElementById('today-date').textContent = `${year}年${month}月${day}日`;
+            
+            // 显示星期几
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            document.getElementById('today-weekday').textContent = weekdays[today.getDay()];
+            
+            // 显示阴历日期
+            const lunar = solarToLunar(year, month, day);
+            document.getElementById('today-lunar').textContent = `农历${lunarMonth[lunar.month-1]}月${getLunarDayName(lunar.day)}`;
+            
+            // 显示黄历信息
+            displayHuangli(lunar, today);
+        }
+        
+        // 阳历转阴历
+        function solarToLunar(year, month, day) {
+            if (year < 1900 || year > 2100) {
+                return { year: year, month: month, day: day, isleap: false };
+            }
+            
+            if (month < 1 || month > 12) {
+                return { year: year, month: month, day: day, isleap: false };
+            }
+            
+            if (day < 1 || day > solarMonth[month-1]) {
+                if (!(month == 2 && isLeap(year) && day == 29)) {
+                    return { year: year, month: month, day: day, isleap: false };
+                }
+            }
+            
+            let i, leap = 0, temp = 0;
+            let baseYear = 1900;
+            let baseMonth = 1;
+            let baseDay = 31;
+            
+            let offset = (Date.UTC(year, month-1, day) - Date.UTC(1900, 0, 31)) / 86400000;
+            
+            for (i = 1900; i < 2101 && offset > 0; i++) {
+                temp = lYearDays(i);
+                offset -= temp;
+            }
+            
+            if (offset < 0) {
+                offset += temp;
+                i--;
+            }
+            
+            let lunarYear = i;
+            leap = leapMonth(i);
+            let isLeap = false;
+            
+            for (i = 1; i < 13 && offset > 0; i++) {
+                if (leap > 0 && i == (leap + 1) && isLeap == false) {
+                    --i;
+                    isLeap = true;
+                    temp = leapDays(lunarYear);
+                } else {
+                    temp = monthDays(lunarYear, i);
+                }
+                
+                if (isLeap == true && i == (leap + 1)) {
+                    isLeap = false;
+                }
+                
+                offset -= temp;
+            }
+            
+            if (offset == 0 && leap > 0 && i == leap + 1) {
+                if (isLeap) {
+                    isLeap = false;
+                } else {
+                    isLeap = true;
+                    --i;
+                }
+            }
+            
+            if (offset < 0) {
+                offset += temp;
+                --i;
+            }
+            
+            let lunarMonth = i;
+            let lunarDay = offset + 1;
+            
+            return { year: lunarYear, month: lunarMonth, day: lunarDay, isleap: isLeap };
+        }
+        
+        // 获取阴历日期名称
+        function getLunarDayName(day) {
+            if (day == 10) return "初十";
+            if (day == 20) return "二十";
+            if (day == 30) return "三十";
+            
+            let ten = Math.floor(day / 10);
+            let unit = day % 10;
+            
+            return lunarDayName[ten] + (unit == 0 ? '' : '一二三四五六七八九'[unit-1]);
+        }
+        
+        // 显示黄历信息
+        function displayHuangli(lunar, solar) {
+            // 简单的黄历数据，实际应用中需要更完整的数据
+            const ganIndex = (lunar.year - 4) % 10;
+            const zhiIndex = (lunar.year - 4) % 12;
+            const sYear = ganIndex + 10 * ((solar.getFullYear() - 4) % 10);
+            const sMonth = solar.getMonth();
+            const sDay = solar.getDate();
+            
+            // 计算宜和忌（简化版）
+            const yiList = [
+                "祭祀、祈福、求嗣、开光、出行、解除、伐木、出火、入宅、移徙、安床、拆卸、修造、栽种、破土、谢土",
+                "嫁娶、纳采、订盟、祭祀、祈福、求嗣、开光、出行、出火、拆卸、修造、动土、入宅、移徙、安床、上梁、栽种、纳畜、破土、启钻、安葬",
+                "祭祀、祈福、求嗣、开光、开市、交易、立券、安床、出行、拆卸",
+                "祭祀、祈福、求嗣、开光、出行、解除、上梁、盖屋、移徙、安床、入殓、破土、安葬",
+                "嫁娶、纳采、订盟、祭祀、祈福、求嗣、开光、出行、解除、伐木、出火、入宅、移徙、安床、拆卸、修造、栽种、破土、谢土"
+            ];
+            
+            const jiList = [
+                "嫁娶、开市、破土、安葬",
+                "开市、交易、破土、安葬",
+                "嫁娶、入宅、安葬",
+                "嫁娶、开光、开市、安葬",
+                "开市、破土、安葬"
+            ];
+            
+            // 使用日期哈希来选择宜和忌
+            const hash = (lunar.year + lunar.month + lunar.day) % yiList.length;
+            document.getElementById('huangli-yi').textContent = yiList[hash];
+            document.getElementById('huangli-ji').textContent = jiList[hash];
+        }
+        
+        // 判断是否为闰年
+        function isLeap(year) {
+            return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+        }
+        
+        // 获取农历年的天数
+        function lYearDays(y) {
+            let i, sum = 348;
+            for (i = 0x8000; i > 0x8; i >>= 1) {
+                sum += (lunarInfo[y-1900] & i) ? 1 : 0;
+            }
+            return(sum + leapDays(y));
+        }
+        
+        // 获取农历闰月天数
+        function leapDays(y) {
+            if (leapMonth(y)) {
+                return((lunarInfo[y-1900] & 0x10000) ? 30 : 29);
+            } else {
+                return(0);
+            }
+        }
+        
+        // 获取农历月的天数
+        function monthDays(y, m) {
+            return((lunarInfo[y-1900] & (0x10000 >> m)) ? 30 : 29);
+        }
+        
+        // 获取农历闰月
+        function leapMonth(y) {
+            return(lunarInfo[y-1900] & 0xf);
+        }
+    </script>
+</body>
+</html>
