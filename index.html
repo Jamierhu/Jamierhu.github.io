@@ -155,13 +155,20 @@
             border-radius: 3px;
             margin-bottom: 20px;
         }
+        #wind-speed {
+            white-space: pre-line;
+        }
+        #weather-desc {
+            white-space: pre-line;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Kindle 天气日历</h1>
-            <div id="location">定位中...</div>
+            <div id="location">菲菲的台历</div>
         </div>
         
         <div id="weather-container" class="weather-section" style="display: none;">
@@ -180,12 +187,12 @@
                     <div id="sunset">--:--</div>
                 </div>
                 <div class="detail-item">
-                    <div>湿度</div>
-                    <div id="humidity">--%</div>
+                    <div>风向</div>
+                    <div id="winddirection">--</div>
                 </div>
                 <div class="detail-item">
-                    <div>风速</div>
-                    <div id="wind-speed">-- m/s</div>
+                    <!--<div>风速</div>-->
+                    <div id="wind-speed">--m/h</div>
                 </div>
             </div>
         </div>
@@ -196,7 +203,7 @@
                 <div class="today-weekday" id="today-weekday">星期二</div>
                 <div class="today-lunar" id="today-lunar">农历十一月廿七</div>
             </div>
-            
+            <!--黄历部分已注释掉，如需启用请取消注释 
             <div class="huangli-section">
                 <div class="huangli-title">黄历</div>
                 <div class="huangli-content">
@@ -210,16 +217,14 @@
                     </div>
                 </div>
             </div>
+            -->
         </div>
     </div>
 
     <script>
-        // 天气API配置（使用OpenWeatherMap免费API）
-        const WEATHER_API_KEY = 'YOUR_API_KEY'; // 需要替换为实际的API密钥
-        const WEATHER_API_URL = 'https://api.openweathermap.org/data/2.5/weather';
-        
-        // 全局变量
-        let currentLocation = null;
+
+        // 全局变量--当前位置经纬度（北京示例）
+        let currentLocation = { lat: 40.0997, lon: 116.3196 };
         
         // 农历数据
         const lunarInfo = [
@@ -244,7 +249,7 @@
         const Gan = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
         const Zhi = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
         const Animals = ["鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪"];
-        const lunarMonth = ["正","二","三","四","五","六","七","八","九","十","十一","腊"];
+        const lunarMonth = ["正","二","三","四","五","六","七","八","九","十","冬","腊"];
         const lunarDayName = ["初","十","廿","三"];
         const jieqi = [
             "小寒","大寒","立春","雨水","惊蛰","春分","清明","谷雨","立夏","小满",
@@ -255,44 +260,13 @@
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             displayTodayInfo();
-            getLocation();
+            getWeather();
         });
-        
-        // 获取用户位置
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        currentLocation = {
-                            lat: position.coords.latitude,
-                            lon: position.coords.longitude
-                        };
-                        document.getElementById('location').textContent = `纬度: ${currentLocation.lat.toFixed(4)}, 经度: ${currentLocation.lon.toFixed(4)}`;
-                        getWeather();
-                    },
-                    error => {
-                        document.getElementById('location').textContent = '定位失败: ' + error.message;
-                        // 使用默认位置（北京）
-                        currentLocation = { lat: 39.9042, lon: 116.4074 };
-                        document.getElementById('location').textContent += ' | 使用默认位置: 北京';
-                        getWeather();
-                    }
-                );
-            } else {
-                document.getElementById('location').textContent = '浏览器不支持地理定位';
-                // 使用默认位置（北京）
-                currentLocation = { lat: 39.9042, lon: 116.4074 };
-                document.getElementById('location').textContent += ' | 使用默认位置: 北京';
-                getWeather();
-            }
-        }
-        
+          
         // 获取天气数据
         function getWeather() {
             if (!currentLocation) return;
-            
-            const url = `${WEATHER_API_URL}?lat=${currentLocation.lat}&lon=${currentLocation.lon}&appid=${WEATHER_API_KEY}&units=metric&lang=zh_cn`;
-            
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLocation.lat}&longitude=${currentLocation.lon}&current_weather=true&timezone=auto`
             fetch(url)
                 .then(response => {
                     if (!response.ok) {
@@ -302,41 +276,446 @@
                 })
                 .then(data => {
                     displayWeather(data);
-                })
-                .catch(error => {
-                    document.getElementById('weather-container').style.display = 'block';
-                    document.getElementById('weather-desc').textContent = '天气获取失败';
-                    console.error('获取天气失败:', error);
                 });
         }
         
+        function getSunriseSunset(date = null) {
+            // 如果没提供日期，使用今天
+            const queryDate = date || new Date().toISOString().split('T')[0];
+            
+            const apiUrl = `https://api.sunrise-sunset.org/json?lat=${currentLocation.lat}&lng=${currentLocation.lon}&date=${queryDate}&formatted=0`;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 转换时间戳为本地时间
+                    const sunriseTime = new Date(data.results.sunrise);
+                    const sunsetTime = new Date(data.results.sunset);
+                    
+                    document.getElementById('sunrise').textContent = sunriseTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('sunset').textContent = sunsetTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                });
+        }
+
+        // 风力等级数据
+        const windLevels = [
+            {
+                level: 0,
+                name: "无风",
+                maxSpeed: 0.72, // m/h
+                description: "烟垂直上升，水面平静如镜",
+                effect: "适宜所有户外活动，空气静止"
+            },
+            {
+                level: 1,
+                name: "软风",
+                maxSpeed: 5.4,
+                description: "烟能表示风向，风向标不转动",
+                effect: "几乎感觉不到风，非常舒适"
+            },
+            {
+                level: 2,
+                name: "轻风",
+                maxSpeed: 11.9,
+                description: "人脸感觉有风，树叶微响",
+                effect: "感觉舒适，适宜散步"
+            },
+            {
+                level: 3,
+                name: "微风",
+                maxSpeed: 19.4,
+                description: "树叶和小枝摇动，旗帜展开",
+                effect: "旗帜可展开，适宜户外活动"
+            },
+            {
+                level: 4,
+                name: "和风",
+                maxSpeed: 28.4,
+                description: "尘土、纸张飞扬，小树枝摇动",
+                effect: "可能有轻微扬尘，不影响正常活动"
+            },
+            {
+                level: 5,
+                name: "清风",
+                maxSpeed: 38.5,
+                description: "小树摇摆，内陆水面有小波",
+                effect: "小树摇摆，湖面起波浪"
+            },
+            {
+                level: 6,
+                name: "强风",
+                maxSpeed: 49.7,
+                description: "大树枝摇动，电线呼呼有声，举伞困难",
+                effect: "打伞困难，需注意安全"
+            },
+            {
+                level: 7,
+                name: "劲风",
+                maxSpeed: 61.6,
+                description: "全树摇动，迎风行走困难",
+                effect: "步行困难，建议减少外出"
+            },
+            {
+                level: 8,
+                name: "大风",
+                maxSpeed: 74.5,
+                description: "折毁小枝，人行走阻力很大",
+                effect: "可能有树枝折断，注意高空坠物"
+            },
+            {
+                level: 9,
+                name: "烈风",
+                maxSpeed: 87.9,
+                description: "屋顶瓦片可能移动，烟囱受损",
+                effect: "可能造成轻微建筑损坏"
+            },
+            {
+                level: 10,
+                name: "狂风",
+                maxSpeed: 102.1,
+                description: "树木拔起，建筑物有损坏",
+                effect: "树木可能被连根拔起，注意安全"
+            },
+            {
+                level: 11,
+                name: "暴风",
+                maxSpeed: 117.2,
+                description: "重大破坏，陆上少见",
+                effect: "重大灾害，避免外出"
+            },
+            {
+                level: 12,
+                name: "飓风",
+                maxSpeed: Infinity,
+                description: "摧毁性破坏，海浪滔天",
+                effect: "极端危险，寻找坚固掩体"
+            }
+        ];
+
+        function getWindDirection(deg) {
+            if (deg >= 337.5 || deg < 22.5) return '北风';
+            if (deg < 67.5) return '东北风';
+            if (deg < 112.5) return '东风';
+            if (deg < 157.5) return '东南风';
+            if (deg < 202.5) return '南风';
+            if (deg < 247.5) return '西南风';
+            if (deg < 292.5) return '西风';
+            return '西北风';
+        }
+
+        const WMO_WEATHER_CODE = {
+        0: { 
+            text: '晴', 
+            icon: '☀️',
+            poetry: '晴空一鹤排云上，便引诗情到碧霄。',
+            author: '刘禹锡',
+            poemName: '秋词'
+        },
+        1: { 
+            text: '少云', 
+            icon: '🌤',
+            poetry: '白云一片去悠悠，青枫浦上不胜愁。',
+            author: '张若虚',
+            poemName: '春江花月夜'
+        },
+        2: { 
+            text: '多云', 
+            icon: '⛅',
+            poetry: '行到水穷处，坐看云起时。',
+            author: '王维',
+            poemName: '终南别业'
+        },
+        3: { 
+            text: '阴', 
+            icon: '☁️',
+            poetry: '黑云压城城欲摧，甲光向日金鳞开。',
+            author: '李贺',
+            poemName: '雁门太守行'
+        },
+
+        45: { 
+            text: '雾', 
+            icon: '🌫',
+            poetry: '雾失楼台，月迷津渡。',
+            author: '秦观',
+            poemName: '踏莎行·郴州旅舍'
+        },
+        48: { 
+            text: '冻雾', 
+            icon: '🌫❄️',
+            poetry: '雾凇沆砀，天与云与山与水，上下一白。',
+            author: '张岱',
+            poemName: '湖心亭看雪'
+        },
+
+        51: { 
+            text: '小毛毛雨', 
+            icon: '🌦',
+            poetry: '细雨湿衣看不见，闲花落地听无声。',
+            author: '刘长卿',
+            poemName: '别严士元'
+        },
+        53: { 
+            text: '中毛毛雨', 
+            icon: '🌦',
+            poetry: '随风潜入夜，润物细无声。',
+            author: '杜甫',
+            poemName: '春夜喜雨'
+        },
+        55: { 
+            text: '强毛毛雨', 
+            icon: '🌧',
+            poetry: '细雨鱼儿出，微风燕子斜。',
+            author: '杜甫',
+            poemName: '水槛遣心二首'
+        },
+        56: { 
+            text: '冻毛毛雨', 
+            icon: '🌧❄️',
+            poetry: '寒雨连江夜入吴，平明送客楚山孤。',
+            author: '王昌龄',
+            poemName: '芙蓉楼送辛渐'
+        },
+        57: { 
+            text: '强冻毛毛雨', 
+            icon: '🌧❄️',
+            poetry: '夜阑卧听风吹雨，铁马冰河入梦来。',
+            author: '陆游',
+            poemName: '十一月四日风雨大作'
+        },
+
+        61: { 
+            text: '小雨', 
+            icon: '🌧',
+            poetry: '天街小雨润如酥，草色遥看近却无。',
+            author: '韩愈',
+            poemName: '早春呈水部张十八员外'
+        },
+        63: { 
+            text: '中雨', 
+            icon: '🌧',
+            poetry: '春潮带雨晚来急，野渡无人舟自横。',
+            author: '韦应物',
+            poemName: '滁州西涧'
+        },
+        65: { 
+            text: '大雨', 
+            icon: '🌧🌧',
+            poetry: '黑云翻墨未遮山，白雨跳珠乱入船。',
+            author: '苏轼',
+            poemName: '六月二十七日望湖楼醉书'
+        },
+        66: { 
+            text: '冻雨', 
+            icon: '🌧❄️',
+            poetry: '僵卧孤村不自哀，尚思为国戍轮台。',
+            author: '陆游',
+            poemName: '十一月四日风雨大作'
+        },
+        67: { 
+            text: '强冻雨', 
+            icon: '🌧❄️',
+            poetry: '风刀霜剑严相逼，凄风寒雨不胜悲。',
+            author: '曹雪芹',
+            poemName: '红楼梦·葬花吟'
+        },
+
+        71: { 
+            text: '小雪', 
+            icon: '❄️',
+            poetry: '小雪晴沙不作泥，疏帘红日弄朝晖。',
+            author: '黄庭坚',
+            poemName: '春近四绝句'
+        },
+        73: { 
+            text: '中雪', 
+            icon: '❄️❄️',
+            poetry: '忽如一夜春风来，千树万树梨花开。',
+            author: '岑参',
+            poemName: '白雪歌送武判官归京'
+        },
+        75: { 
+            text: '大雪', 
+            icon: '❄️❄️❄️',
+            poetry: '燕山雪花大如席，片片吹落轩辕台。',
+            author: '李白',
+            poemName: '北风行'
+        },
+        77: { 
+            text: '雪粒', 
+            icon: '🌨',
+            poetry: '撒盐空中差可拟，未若柳絮因风起。',
+            author: '谢道韫',
+            poemName: '咏雪联句'
+        },
+
+        80: { 
+            text: '小阵雨', 
+            icon: '🌦',
+            poetry: '东边日出西边雨，道是无晴却有晴。',
+            author: '刘禹锡',
+            poemName: '竹枝词二首·其一'
+        },
+        81: { 
+            text: '中阵雨', 
+            icon: '🌧',
+            poetry: '雷声千嶂落，雨色万峰来。',
+            author: '李攀龙',
+            poemName: '广阳山道中'
+        },
+        82: { 
+            text: '强阵雨', 
+            icon: '🌧🌧',
+            poetry: '风如拔山怒，雨如决河倾。',
+            author: '陆游',
+            poemName: '大风雨中作'
+        },
+        85: { 
+            text: '小阵雪', 
+            icon: '🌨',
+            poetry: '旋扑珠帘过粉墙，轻于柳絮重于霜。',
+            author: '李商隐',
+            poemName: '对雪二首'
+        },
+        86: { 
+            text: '强阵雪', 
+            icon: '🌨❄️',
+            poetry: '战退玉龙三百万，败鳞残甲满天飞。',
+            author: '张元',
+            poemName: '雪'
+        },
+
+        95: { 
+            text: '雷暴', 
+            icon: '⛈',
+            poetry: '列缺霹雳，丘峦崩摧。洞天石扉，訇然中开。',
+            author: '李白',
+            poemName: '梦游天姥吟留别'
+        },
+        96: { 
+            text: '雷暴伴小冰雹', 
+            icon: '⛈🧊',
+            poetry: '雷车驾雨龙尽起，电行半空如狂矢。',
+            author: '陆游',
+            poemName: '中夜闻大雷雨'
+        },
+        99: { 
+            text: '雷暴伴大冰雹', 
+            icon: '⛈🧊🧊',
+            poetry: '雷公砰訇震天鼓，帝遣丰隆召阿香。',
+            author: '杨万里',
+            poemName: '腊月村田乐府'
+        }
+        };
+
+        // 扩展版本：根据季节和昼夜变换诗句
+        const SEASONAL_POETRY = {
+        spring: {
+            0: '春日游，杏花吹满头。',
+            61: '好雨知时节，当春乃发生。',
+            71: '白雪却嫌春色晚，故穿庭树作飞花。'
+        },
+        summer: {
+            0: '绿树阴浓夏日长，楼台倒影入池塘。',
+            95: '黑云翻墨未遮山，白雨跳珠乱入船。',
+            65: '风驱急雨洒高城，云压轻雷殷地声。'
+        },
+        autumn: {
+            0: '空山新雨后，天气晚来秋。',
+            3: '秋阴不散霜飞晚，留得枯荷听雨声。',
+            71: '十月江南天气好，可怜冬景似春华。'
+        },
+        winter: {
+            0: '冬日可爱，夏日可畏。',
+            75: '北风卷地白草折，胡天八月即飞雪。',
+            48: '岁暮阴阳催短景，天涯霜雪霁寒宵。'
+        },
+        night: {
+            0: '星垂平野阔，月涌大江流。',
+            61: '夜雨剪春韭，新炊间黄粱。',
+            45: '雾失楼台，月迷津渡。'
+        }
+        };
+
+        // 使用示例函数
+        function getWeatherInfo(code, options = {}) {
+        const weather = WMO_WEATHER_CODE[code] || WMO_WEATHER_CODE[0];
+        const { season = 'spring', isNight = false } = options;
+        
+        let poetry = weather.poetry;
+        
+        // 如果有季节性诗句，优先使用
+        if (SEASONAL_POETRY[season] && SEASONAL_POETRY[season][code]) {
+            poetry = SEASONAL_POETRY[season][code];
+        }
+        
+        // 如果是夜晚且有夜晚诗句
+        if (isNight && SEASONAL_POETRY.night && SEASONAL_POETRY.night[code]) {
+            poetry = SEASONAL_POETRY.night[code];
+        }
+        
+        return {
+            ...weather,
+            poetry: poetry,
+            fullPoetry: `${poetry} —— ${weather.author}《${weather.poemName}》`
+        };
+        }
+
+        // 获取当前季节
+        function getCurrentSeason() {
+        const month = new Date().getMonth() + 1;
+        if (month >= 3 && month <= 5) return 'spring';
+        if (month >= 6 && month <= 8) return 'summer';
+        if (month >= 9 && month <= 11) return 'autumn';
+        return 'winter';
+        }
+
+        // 完整的使用示例
+        function displayWeatherWithPoetry(weatherCode, isNight) {
+            const season = getCurrentSeason();
+            const weatherInfo = getWeatherInfo(weatherCode, {
+                season: season,
+                isNight: isNight
+            });
+            
+            return `
+                ${season === 'spring' ? '春' : 
+                season === 'summer' ? '夏' : 
+                season === 'autumn' ? '秋' : '冬'}季\n
+                ${weatherInfo.poetry}\n
+                ${weatherInfo.author}《${weatherInfo.poemName}》
+            `;
+        }
+
         // 显示天气数据
         function displayWeather(data) {
-            // 天气图标映射
-            const weatherIcons = {
-                '01d': '☀️', '01n': '🌙',
-                '02d': '⛅', '02n': '☁️',
-                '03d': '☁️', '03n': '☁️',
-                '04d': '☁️', '04n': '☁️',
-                '09d': '🌧️', '09n': '🌧️',
-                '10d': '🌦️', '10n': '🌧️',
-                '11d': '⛈️', '11n': '⛈️',
-                '13d': '❄️', '13n': '❄️',
-                '50d': '🌫️', '50n': '🌫️'
-            };
-            
-            document.getElementById('weather-icon').textContent = weatherIcons[data.weather[0].icon] || '🌤️';
-            document.getElementById('temp').textContent = `${Math.round(data.main.temp)}°C`;
-            document.getElementById('weather-desc').textContent = data.weather[0].description;
-            
-            // 转换时间戳为本地时间
-            const sunriseTime = new Date(data.sys.sunrise * 1000);
-            const sunsetTime = new Date(data.sys.sunset * 1000);
-            
-            document.getElementById('sunrise').textContent = sunriseTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('sunset').textContent = sunsetTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('humidity').textContent = `${data.main.humidity}%`;
-            document.getElementById('wind-speed').textContent = `${data.wind.speed} m/s`;
+ 
+            if(data.current_weather.is_day === 0 && 
+                (data.current_weather.weathercode >= 0 || data.current_weather.weathercode <= 2)) {
+                document.getElementById('weather-icon').textContent = '🌙';
+            } else {
+                document.getElementById('weather-icon').textContent = WMO_WEATHER_CODE[data.current_weather.weathercode].icon;
+            }
+
+            document.getElementById('temp').textContent = `${data.current_weather.temperature}°C`;
+
+            document.getElementById('weather-desc').textContent = `${displayWeatherWithPoetry(data.current_weather.weathercode, data.current_weather.is_day === 0)}`;         
+            // 获取并显示日出日落时间
+            getSunriseSunset();
+            document.getElementById('winddirection').textContent = `${getWindDirection(data.current_weather.winddirection)}`;
+
+            for (let i = 0; i < windLevels.length; i++) {
+                if (data.current_weather.windspeed <= windLevels[i].maxSpeed) {
+                    document.getElementById('wind-speed').textContent = `${windLevels[i].level}级 ${windLevels[i].name}\r\n${windLevels[i].description}`;
+                    break;
+                }
+            }
+            //document.getElementById('wind-speed').textContent = `${data.current_weather.windspeed}m/h`;
             
             document.getElementById('weather-container').style.display = 'block';
         }
@@ -357,10 +736,10 @@
             
             // 显示阴历日期
             const lunar = solarToLunar(year, month, day);
-            document.getElementById('today-lunar').textContent = `农历${lunarMonth[lunar.month-1]}月${getLunarDayName(lunar.day)}`;
+            document.getElementById('today-lunar').textContent = `${lunarMonth[lunar.month-1]}月${getLunarDayName(lunar.day)}`;
             
             // 显示黄历信息
-            displayHuangli(lunar, today);
+            //displayHuangli(lunar, today);
         }
         
         // 阳历转阴历
