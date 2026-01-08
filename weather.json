@@ -10,6 +10,11 @@
     "sunrise": "07:34",
     "sunset": "17:03"
   },
+  "date": {
+    "year": 2026,
+    "month": 1,
+    "day": 8
+  },
   "timezone": "Asia/Shanghai",
   "update_time": "2026-01-08T12:00:00"
 }
