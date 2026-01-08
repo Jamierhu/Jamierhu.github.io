@@ -1,0 +1,15 @@
+{
+  "current_weather": {
+    "temperature": 5,
+    "weathercode": 2,
+    "winddirection": 270,
+    "windspeed": 12,
+    "is_day": 1
+  },
+  "sun": {
+    "sunrise": "07:34",
+    "sunset": "17:03"
+  },
+  "timezone": "Asia/Shanghai",
+  "update_time": "2026-01-08T12:00:00"
+}
