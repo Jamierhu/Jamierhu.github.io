@@ -275,7 +275,7 @@
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             displayTodayInfo();
-            getWeather();
+            //getWeather();
         });
           
         // 缓存管理
@@ -778,19 +778,29 @@
             document.getElementById('weather-container').style.display = 'block';
         }
         
-        // 显示当天信息
-        function displayTodayInfo() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth() + 1;
-            const day = today.getDate();
+        // 显示当天信息（从weather.json获取日期）
+        function displayTodayInfo(weatherData = null) {
+            let year, month, day;
+            
+            // 优先从weather.json获取日期，否则使用系统日期
+            if (weatherData && weatherData.date) {
+                year = weatherData.date.year;
+                month = weatherData.date.month;
+                day = weatherData.date.day;
+            } else {
+                const today = new Date();
+                year = today.getFullYear();
+                month = today.getMonth() + 1;
+                day = today.getDate();
+            }
             
             // 显示阳历日期
             document.getElementById('today-date').textContent = `${year}年${month}月${day}日`;
             
-            // 显示星期几
+            // 计算星期几（基于year/month/day）
+            const dateObj = new Date(year, month - 1, day);
             const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            document.getElementById('today-weekday').textContent = weekdays[today.getDay()];
+            document.getElementById('today-weekday').textContent = weekdays[dateObj.getDay()];
             
             // 显示阴历日期
             const lunar = solarToLunar(year, month, day);
