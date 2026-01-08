@@ -223,8 +223,23 @@
 
     <script>
 
-        // 全局变量--当前位置经纬度（北京示例）
+        // ========================================
+        // 缓存和离线机制说明
+        // ========================================
+        // 1. 使用 localStorage 缓存天气数据（默认1小时过期）
+        // 2. 如果本地有缓存，直接显示缓存数据，不请求API
+        // 3. 如果API请求失败，自动进入离线模式
+        // 4. 在Kindle等低带宽设备上更稳定
+        // 5. 天气数据来自GitHub仓库中的weather.json文件
+        // ========================================
         let currentLocation = { lat: 40.0997, lon: 116.3196 };
+        
+        // 清除缓存，强制刷新天气
+        function refreshWeather() {
+            localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem(CACHE_EXPIRY_KEY);
+            getWeather();
+        }
         
         // 农历数据
         const lunarInfo = [
@@ -263,11 +278,46 @@
             getWeather();
         });
           
-        // 获取天气数据
+        // 缓存管理
+        const CACHE_KEY = 'weather_cache';
+        const CACHE_EXPIRY_KEY = 'weather_cache_expiry';
+        const CACHE_DURATION = 3600000; // 1小时
+
+        // 获取缓存的数据
+        function getCachedWeather() {
+            const cached = localStorage.getItem(CACHE_KEY);
+            const expiry = localStorage.getItem(CACHE_EXPIRY_KEY);
+            
+            if (cached && expiry && new Date().getTime() < parseInt(expiry)) {
+                return JSON.parse(cached);
+            }
+            return null;
+        }
+
+        // 保存缓存数据
+        function setCachedWeather(data) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                localStorage.setItem(CACHE_EXPIRY_KEY, (new Date().getTime() + CACHE_DURATION).toString());
+            } catch (e) {
+                console.warn('无法保存缓存：', e);
+            }
+        }
+
+        // 获取天气数据（从weather.json读取）
         function getWeather() {
-            if (!currentLocation) return;
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLocation.lat}&longitude=${currentLocation.lon}&current_weather=true&timezone=auto`
-            fetch(url)
+            // 先尝试使用缓存
+            const cachedData = getCachedWeather();
+            if (cachedData) {
+                displayWeather(cachedData);
+                return;
+            }
+
+            // 从GitHub仓库读取weather.json
+            // 请替换为你的GitHub用户名和仓库名
+            const weatherJsonUrl = 'https://raw.githubusercontent.com/Jamierhu/Jamierhu.github.io/main/weather.json';
+            
+            fetch(weatherJsonUrl, { timeout: 5000 })
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -275,31 +325,27 @@
                     return response.json();
                 })
                 .then(data => {
+                    setCachedWeather(data);
                     displayWeather(data);
+                })
+                .catch(error => {
+                    console.error('获取天气失败:', error);
+                    // 如果请求失败，显示离线提示
+                    showWeatherOfflineMode();
                 });
         }
         
-        function getSunriseSunset(date = null) {
-            // 如果没提供日期，使用今天
-            const queryDate = date || new Date().toISOString().split('T')[0];
+        function getSunriseSunset(date = null, weatherData = null) {
+            // 如果传入了天气数据对象，直接使用其中的日出日落时间
+            if (weatherData && weatherData.sun) {
+                document.getElementById('sunrise').textContent = weatherData.sun.sunrise;
+                document.getElementById('sunset').textContent = weatherData.sun.sunset;
+                return;
+            }
             
-            const apiUrl = `https://api.sunrise-sunset.org/json?lat=${currentLocation.lat}&lng=${currentLocation.lon}&date=${queryDate}&formatted=0`;
-
-            fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // 转换时间戳为本地时间
-                    const sunriseTime = new Date(data.results.sunrise);
-                    const sunsetTime = new Date(data.results.sunset);
-                    
-                    document.getElementById('sunrise').textContent = sunriseTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-                    document.getElementById('sunset').textContent = sunsetTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-                });
+            // 否则显示默认值
+            document.getElementById('sunrise').textContent = '--:--';
+            document.getElementById('sunset').textContent = '--:--';
         }
 
         // 风力等级数据
@@ -692,6 +738,18 @@
             `;
         }
 
+        // 离线模式：API请求失败时的降级方案
+        function showWeatherOfflineMode() {
+            document.getElementById('weather-icon').textContent = '❓';
+            document.getElementById('temp').textContent = '--°C';
+            document.getElementById('weather-desc').textContent = '离线模式：无法获取天气数据，请检查网络连接';
+            document.getElementById('sunrise').textContent = '--:--';
+            document.getElementById('sunset').textContent = '--:--';
+            document.getElementById('winddirection').textContent = '--';
+            document.getElementById('wind-speed').textContent = '无数据';
+            document.getElementById('weather-container').style.display = 'block';
+        }
+
         // 显示天气数据
         function displayWeather(data) {
  
@@ -705,8 +763,8 @@
             document.getElementById('temp').textContent = `${data.current_weather.temperature}°C`;
 
             document.getElementById('weather-desc').textContent = `${displayWeatherWithPoetry(data.current_weather.weathercode, data.current_weather.is_day === 0)}`;         
-            // 获取并显示日出日落时间
-            getSunriseSunset();
+            // 获取并显示日出日落时间（从weather.json中获取）
+            getSunriseSunset(null, data);
             document.getElementById('winddirection').textContent = `${getWindDirection(data.current_weather.winddirection)}`;
 
             for (let i = 0; i < windLevels.length; i++) {
