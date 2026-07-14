@@ -2,19 +2,19 @@
   "cities": [
     {
       "name": "北京昌平",
-      "file": "weather-北京昌平.json"
+      "file": "weather-w1.json"
     },
     {
       "name": "河北邯郸",
-      "file": "weather-河北邯郸.json"
+      "file": "weather-w2.json"
     },
     {
       "name": "山东莘县",
-      "file": "weather-山东莘县.json"
+      "file": "weather-w3.json"
     },
     {
       "name": "山东莱州",
-      "file": "weather-山东莱州.json"
+      "file": "weather-w4.json"
     }
   ],
   "default": "北京昌平"

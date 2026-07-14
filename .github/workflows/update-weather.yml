@@ -28,13 +28,14 @@ jobs:
           import urllib.request
           from datetime import datetime, timezone, timedelta
 
-          # ===== 配置：城市列表（名称, 纬度, 经度）=====
+          # ===== 配置：城市列表（名称, 纬度, 经度, 文件代号）=====
           # 新增城市只需在此列表追加即可
+          # file 字段使用代号，避免在仓库中暴露城市名
           CITIES = [
-              ("北京昌平", 40.2161, 116.2347),
-              ("河北邯郸", 36.6100, 114.4876),
-              ("山东莘县", 36.0700, 115.6700),
-              ("山东莱州", 37.1807, 119.9422),
+              ("北京昌平", 40.2161, 116.2347, "w1"),
+              ("河北邯郸", 36.6100, 114.4876, "w2"),
+              ("山东莘县", 36.0700, 115.6700, "w3"),
+              ("山东莱州", 37.1807, 119.9422, "w4"),
           ]
 
           # WMO weather code → 中文描述
@@ -142,16 +143,16 @@ jobs:
           now_bj = datetime.now(bj)
           update_time = now_bj.strftime("%Y-%m-%d %H:%M")
 
-          # 城市列表索引（供前端切换用）
-          city_list = [{"name": c[0], "file": f"weather-{c[0]}.json"} for c in CITIES]
+          # 城市列表索引（供前端切换用，file 使用代号避免暴露城市名）
+          city_list = [{"name": c[0], "file": f"weather-{c[3]}.json"} for c in CITIES]
           with open("cities.json", "w", encoding="utf-8") as f:
               json.dump({"cities": city_list, "default": CITIES[0][0]}, f, ensure_ascii=False, indent=2)
 
-          # 抓取每个城市并保存为独立文件
-          for name, lat, lon in CITIES:
+          # 抓取每个城市并保存为独立文件（使用代号命名）
+          for name, lat, lon, code in CITIES:
               try:
                   result = fetch_city(name, lat, lon, update_time)
-                  fname = f"weather-{name}.json"
+                  fname = f"weather-{code}.json"
                   with open(fname, "w", encoding="utf-8") as f:
                       json.dump(result, f, ensure_ascii=False, indent=2)
                   print(f"[{name}] 更新成功: {fname}")
