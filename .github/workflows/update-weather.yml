@@ -1,0 +1,165 @@
+name: 更新天气数据
+
+on:
+  schedule:
+    # 每 30 分钟更新一次（UTC 时间，北京时间 = UTC+8）
+    - cron: '*/30 * * * *'
+  workflow_dispatch:  # 支持手动触发
+
+permissions:
+  contents: write  # 允许 Action 提交代码
+
+jobs:
+  update-weather:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 抓取天气并更新 weather.json
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import urllib.request
+          from datetime import datetime, timezone, timedelta
+
+          # ===== 配置：城市经纬度 =====
+          LAT = 39.9042   # 北京纬度
+          LON = 116.4074  # 北京经度
+          CITY = "北京"
+
+          # WMO weather code → 中文描述
+          WMO_DESC = {
+              0: "晴", 1: "晴间多云", 2: "多云", 3: "阴",
+              45: "雾", 48: "冻雾",
+              51: "小毛毛雨", 53: "毛毛雨", 55: "大毛毛雨",
+              56: "冻毛毛雨", 57: "强冻毛毛雨",
+              61: "小雨", 63: "中雨", 65: "大雨",
+              66: "冻雨", 67: "强冻雨",
+              71: "小雪", 73: "中雪", 75: "大雪",
+              77: "雪粒",
+              80: "小阵雨", 81: "阵雨", 82: "强阵雨",
+              85: "阵雪", 86: "强阵雪",
+              95: "雷阵雨", 96: "雷阵雨伴冰雹", 99: "强雷阵雨伴冰雹",
+          }
+
+          # 风向角度 → 中文
+          def wind_dir(deg):
+              dirs = ["北风","东北风","东风","东南风","南风","西南风","西风","西北风"]
+              return dirs[int((deg + 22.5) / 45) % 8]
+
+          # 风速 km/h → 蒲福风级
+          def wind_scale(kmh):
+              bounds = [1, 6, 12, 20, 29, 39, 50, 62, 75, 89, 103, 118]
+              for i, b in enumerate(bounds):
+                  if kmh < b:
+                      return f"{i}级"
+              return "12级以上"
+
+          # UV 指数 → 描述
+          def uv_desc(uv):
+              if uv is None: return "—"
+              if uv < 3: return "弱"
+              if uv < 6: return "中等"
+              if uv < 8: return "强"
+              if uv < 11: return "很强"
+              return "极强"
+
+          # AQI 等级（Open-Meteo 不提供 AQI，这里用 visibility 粗略估算）
+          def aqi_from_visibility(vis_m):
+              if vis_m is None: return None, None
+              km = vis_m / 1000
+              if km >= 20: return 30, "优"
+              if km >= 15: return 60, "良"
+              if km >= 10: return 90, "良"
+              if km >= 5: return 130, "轻度污染"
+              if km >= 2: return 180, "中度污染"
+              return 250, "重度污染"
+
+          url = (f"https://api.open-meteo.com/v1/forecast?"
+                 f"latitude={LAT}&longitude={LON}"
+                 f"&current=temperature_2m,relative_humidity_2m,apparent_temperature,"
+                 f"weather_code,wind_direction_10m,wind_speed_10m,pressure_msl,visibility"
+                 f"&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max"
+                 f"&timezone=Asia%2FShanghai&forecast_days=6")
+
+          print("请求:", url)
+          with urllib.request.urlopen(url, timeout=30) as resp:
+              data = json.loads(resp.read().decode())
+
+          cur = data["current"]
+          daily = data["daily"]
+
+          aqi, aqi_level = aqi_from_visibility(cur.get("visibility"))
+
+          # 北京时间
+          bj = timezone(timedelta(hours=8))
+          now_bj = datetime.now(bj)
+          update_time = now_bj.strftime("%Y-%m-%d %H:%M")
+
+          # 今日数据
+          today = {
+              "date": daily["time"][0],
+              "week": ["星期一","星期二","星期三","星期四","星期五","星期六","星期日"][datetime.strptime(daily["time"][0], "%Y-%m-%d").weekday()],
+              "weather": WMO_DESC.get(daily["weather_code"][0], "未知"),
+              "weatherCode": str(daily["weather_code"][0]),
+              "tempMax": round(daily["temperature_2m_max"][0]),
+              "tempMin": round(daily["temperature_2m_min"][0]),
+              "humidity": cur["relative_humidity_2m"],
+              "windDir": wind_dir(cur["wind_direction_10m"]),
+              "windScale": wind_scale(cur["wind_speed_10m"]),
+              "windSpeed": round(cur["wind_speed_10m"]),
+              "pressure": round(cur["pressure_msl"]),
+              "visibility": round(cur["visibility"] / 1000, 1),
+              "sunrise": daily["sunrise"][0][11:16],
+              "sunset": daily["sunset"][0][11:16],
+              "uv": uv_desc(daily["uv_index_max"][0]),
+              "aqi": aqi,
+              "aqiLevel": aqi_level,
+              "feelsLike": round(cur["apparent_temperature"]),
+          }
+
+          # 未来 5 天预报（跳过今天）
+          forecast = []
+          for i in range(1, 6):
+              d = daily["time"][i]
+              wd = datetime.strptime(d, "%Y-%m-%d").weekday()
+              forecast.append({
+                  "date": d,
+                  "week": ["星期一","星期二","星期三","星期四","星期五","星期六","星期日"][wd],
+                  "weather": WMO_DESC.get(daily["weather_code"][i], "未知"),
+                  "weatherCode": str(daily["weather_code"][i]),
+                  "tempMax": round(daily["temperature_2m_max"][i]),
+                  "tempMin": round(daily["temperature_2m_min"][i]),
+              })
+
+          result = {
+              "city": CITY,
+              "updateTime": update_time,
+              "today": today,
+              "forecast": forecast,
+          }
+
+          with open("weather.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False, indent=2)
+
+          print("更新成功:", update_time)
+          print(json.dumps(result, ensure_ascii=False, indent=2))
+          PYEOF
+
+      - name: 提交并推送
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add weather.json
+          if git diff --cached --quiet; then
+            echo "天气数据无变化，跳过提交"
+          else
+            git commit -m "chore: 自动更新天气数据 $(date -u -d '+8 hours' '+%Y-%m-%d %H:%M')"
+            git push
+          fi
