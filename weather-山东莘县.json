@@ -1,65 +1,65 @@
 {
-  "city": "北京昌平",
+  "city": "山东莘县",
   "updateTime": "2026-07-14 15:35",
   "today": {
     "date": "2026-07-14",
     "week": "星期二",
     "weather": "阴",
     "weatherCode": "3",
-    "tempMax": 33,
-    "tempMin": 23,
-    "humidity": 48,
-    "windDir": "西风",
+    "tempMax": 36,
+    "tempMin": 26,
+    "humidity": 46,
+    "windDir": "西北风",
     "windScale": "1级",
     "windSpeed": 2,
     "pressure": 999,
-    "visibility": 13.9,
-    "sunrise": "04:57",
-    "sunset": "19:44",
-    "uv": "中等",
+    "visibility": 11.9,
+    "sunrise": "05:11",
+    "sunset": "19:35",
+    "uv": "很强",
     "aqi": 90,
     "aqiLevel": "良",
-    "feelsLike": 36
+    "feelsLike": 41
   },
   "forecast": [
     {
       "date": "2026-07-15",
       "week": "星期三",
-      "weather": "阴",
-      "weatherCode": "3",
-      "tempMax": 35,
-      "tempMin": 21
+      "weather": "雷阵雨伴冰雹",
+      "weatherCode": "96",
+      "tempMax": 30,
+      "tempMin": 26
     },
     {
       "date": "2026-07-16",
       "week": "星期四",
       "weather": "阴",
       "weatherCode": "3",
-      "tempMax": 35,
-      "tempMin": 23
+      "tempMax": 33,
+      "tempMin": 24
     },
     {
       "date": "2026-07-17",
       "week": "星期五",
-      "weather": "阴",
-      "weatherCode": "3",
-      "tempMax": 34,
-      "tempMin": 25
+      "weather": "强阵雨",
+      "weatherCode": "82",
+      "tempMax": 27,
+      "tempMin": 23
     },
     {
       "date": "2026-07-18",
       "week": "星期六",
-      "weather": "小毛毛雨",
-      "weatherCode": "51",
-      "tempMax": 31,
-      "tempMin": 22
+      "weather": "晴间多云",
+      "weatherCode": "1",
+      "tempMax": 30,
+      "tempMin": 20
     },
     {
       "date": "2026-07-19",
       "week": "星期日",
-      "weather": "毛毛雨",
-      "weatherCode": "53",
-      "tempMax": 33,
+      "weather": "小毛毛雨",
+      "weatherCode": "51",
+      "tempMax": 31,
       "tempMin": 22
     }
   ]

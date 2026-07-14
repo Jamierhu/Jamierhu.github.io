@@ -559,25 +559,19 @@ function render(data) {
 
 // ===== 城市列表与切换 =====
 window.CITY_LIST = [
-  { name: "北京", file: "weather-北京.json" },
-  { name: "上海", file: "weather-上海.json" },
-  { name: "广州", file: "weather-广州.json" },
-  { name: "深圳", file: "weather-深圳.json" },
-  { name: "杭州", file: "weather-杭州.json" },
-  { name: "成都", file: "weather-成都.json" },
-  { name: "武汉", file: "weather-武汉.json" },
-  { name: "西安", file: "weather-西安.json" },
-  { name: "南京", file: "weather-南京.json" },
-  { name: "重庆", file: "weather-重庆.json" },
+  { name: "北京昌平", file: "weather-北京昌平.json" },
+  { name: "河北邯郸", file: "weather-河北邯郸.json" },
+  { name: "山东莘县", file: "weather-山东莘县.json" },
+  { name: "山东莱州", file: "weather-山东莱州.json" },
 ];
 
-// 从 localStorage 读取上次选择的城市，默认北京
+// 从 localStorage 读取上次选择的城市，默认北京昌平
 function getCurrentCity() {
   try {
     const saved = localStorage.getItem('kindle_city');
     if (saved && window.CITY_LIST.some(c => c.name === saved)) return saved;
   } catch (e) {}
-  return '北京';
+  return '北京昌平';
 }
 
 // 切换城市

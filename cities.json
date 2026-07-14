@@ -1,0 +1,21 @@
+{
+  "cities": [
+    {
+      "name": "北京昌平",
+      "file": "weather-北京昌平.json"
+    },
+    {
+      "name": "河北邯郸",
+      "file": "weather-河北邯郸.json"
+    },
+    {
+      "name": "山东莘县",
+      "file": "weather-山东莘县.json"
+    },
+    {
+      "name": "山东莱州",
+      "file": "weather-山东莱州.json"
+    }
+  ],
+  "default": "北京昌平"
+}
