@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kindle 天气台历</title>
+<script src="lunar.js"></script>
+<style>
+  /* ===== Kindle e-ink 优化样式 ===== */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    color: #000000;
+    font-family: "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", serif;
+    font-size: 20px;
+    line-height: 1.4;
+    /* Kindle 浏览器刷新慢，禁用动画 */
+    -webkit-transition: none !important;
+    transition: none !important;
+  }
+
+  /* 主容器：适配 Kindle 824×1200 竖屏 */
+  .container {
+    width: 100%;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ===== 顶部：日期 + 天气主信息 ===== */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #000;
+    padding-bottom: 16px;
+  }
+
+  .date-block {
+    flex: 1;
+  }
+
+  .solar-date {
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 2px;
+  }
+  .solar-date .year-month {
+    font-size: 28px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .lunar-line {
+    font-size: 26px;
+    margin-top: 10px;
+    color: #000;
+  }
+  .lunar-line .zodiac {
+    margin-left: 12px;
+    font-weight: 700;
+  }
+  .week-line {
+    font-size: 24px;
+    margin-top: 6px;
+    color: #333;
+  }
+
+  /* 天气主信息（右上） */
+  .weather-main {
+    text-align: right;
+    min-width: 240px;
+  }
+  .weather-icon-text {
+    font-size: 40px;
+    font-weight: 700;
+  }
+  .temp-main {
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 1;
+    margin: 4px 0;
+  }
+  .temp-main .unit {
+    font-size: 32px;
+    font-weight: 500;
+  }
+  .temp-range {
+    font-size: 24px;
+    color: #333;
+  }
+
+  /* ===== 天气详情网格 ===== */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: #000;
+    border: 2px solid #000;
+  }
+  .detail-item {
+    background: #fff;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .detail-label {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 6px;
+  }
+  .detail-value {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  /* ===== 黄历宜忌 ===== */
+  .almanac {
+    border: 2px solid #000;
+    padding: 16px 20px;
+  }
+  .almanac-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .almanac-title .ganzhi {
+    font-weight: 500;
+    font-size: 22px;
+  }
+  .yi-jiu {
+    display: flex;
+    gap: 24px;
+  }
+  .yi, .ji {
+    flex: 1;
+  }
+  .yi-label, .ji-label {
+    font-size: 28px;
+    font-weight: 700;
+    display: inline-block;
+    width: 48px;
+    text-align: center;
+    border: 2px solid #000;
+    padding: 4px 0;
+    margin-right: 12px;
+    vertical-align: top;
+  }
+  .ji-label {
+    background: #000;
+    color: #fff;
+  }
+  .yi-content, .ji-content {
+    display: inline-block;
+    width: calc(100% - 70px);
+    font-size: 22px;
+    line-height: 1.6;
+    vertical-align: top;
+  }
+
+  /* ===== 24 节气 ===== */
+  .jieqi {
+    border: 2px solid #000;
+    padding: 16px 20px;
+  }
+  .jieqi-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+  }
+  .jieqi-current {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  .jieqi-current .current-name {
+    font-weight: 700;
+    font-size: 28px;
+  }
+  .jieqi-next {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 14px;
+  }
+  .jieqi-next .next-name {
+    font-weight: 700;
+    color: #000;
+  }
+  .jieqi-next .countdown {
+    display: inline-block;
+    border: 2px solid #000;
+    padding: 2px 10px;
+    margin-left: 8px;
+    font-weight: 700;
+  }
+
+  /* 节气进度条（纯字符，e-ink 友好） */
+  .jieqi-progress {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    color: #555;
+    margin-top: 8px;
+  }
+  .jieqi-bar {
+    height: 14px;
+    border: 2px solid #000;
+    margin: 8px 0;
+    position: relative;
+    background: #fff;
+  }
+  .jieqi-bar-fill {
+    height: 100%;
+    background: #000;
+  }
+
+  /* ===== 未来天气 ===== */
+  .forecast {
+    border: 2px solid #000;
+    padding: 16px 20px;
+  }
+  .forecast-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+  }
+  .forecast-list {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    background: #000;
+    border: 2px solid #000;
+  }
+  .forecast-day {
+    background: #fff;
+    padding: 12px 6px;
+    text-align: center;
+  }
+  .forecast-day .day-week {
+    font-size: 18px;
+    color: #555;
+  }
+  .forecast-day .day-weather {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 6px 0;
+  }
+  .forecast-day .day-temp {
+    font-size: 20px;
+  }
+  .forecast-day .day-temp .max {
+    font-weight: 700;
+  }
+  .forecast-day .day-temp .min {
+    color: #555;
+  }
+
+  /* ===== 底部更新时间 ===== */
+  .footer {
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+    border-top: 2px solid #000;
+    padding-top: 10px;
+    margin-top: 8px;
+  }
+
+  /* ===== 天气图标（纯文字符号，e-ink 友好） ===== */
+  .weather-symbol {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* ===== 加载/错误状态 ===== */
+  .status-msg {
+    text-align: center;
+    font-size: 28px;
+    padding: 60px 20px;
+  }
+
+  /* ===== Kindle 横屏适配 ===== */
+  @media (orientation: landscape) {
+    .container {
+      max-width: 1200px;
+      padding: 16px 24px;
+      gap: 14px;
+    }
+    .header {
+      align-items: center;
+    }
+    .solar-date {
+      font-size: 44px;
+    }
+    .temp-main {
+      font-size: 56px;
+    }
+  }
+
+  /* ===== 超小屏适配（Kindle 老款） ===== */
+  @media (max-width: 600px) {
+    .container { padding: 16px; }
+    .solar-date { font-size: 42px; }
+    .temp-main { font-size: 56px; }
+    .detail-grid { grid-template-columns: repeat(2, 1fr); }
+    .forecast-list { grid-template-columns: repeat(2, 1fr); }
+    .yi-jiu { flex-direction: column; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <div class="status-msg">加载中…</div>
+</div>
+
+<script>
+// ===== 天气代码 → 文字符号映射（e-ink 友好，无彩色） =====
+const WEATHER_SYMBOLS = {
+  // 晴
+  '100': '☀', '150': '☀', '151': '☀', '152': '☀',
+  // 多云
+  '101': '⛅', '102': '⛅', '103': '⛅',
+  // 阴
+  '104': '☁',
+  // 阵雨
+  '300': '阵雨', '301': '阵雨',
+  // 雨
+  '302': '雷雨', '303': '雷雨', '304': '雷雨', '305': '雨', '306': '雨',
+  '307': '雨', '308': '雨', '309': '雨', '310': '雨', '311': '雨', '312': '雨',
+  '313': '雪雨', '314': '雪雨', '315': '雪雨', '316': '雪雨', '317': '雪雨',
+  // 雪
+  '400': '雪', '401': '雪', '402': '雪', '403': '雪', '404': '雪', '405': '雪',
+  '406': '雪', '407': '雪', '408': '雪', '409': '雪', '410': '雪',
+  // 雾霾
+  '500': '雾', '501': '雾', '502': '霾', '503': '沙', '504': '沙',
+  '507': '沙', '508': '沙',
+  // 默认
+  '999': '—'
+};
+
+function getWeatherSymbol(code) {
+  if (!code) return '—';
+  const s = WEATHER_SYMBOLS[String(code)];
+  return s || '—';
+}
+
+// ===== 生肖 =====
+const ZODIAC = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+
+// ===== 渲染主函数 =====
+function render(data) {
+  const today = data.today || {};
+  const now = new Date();
+  const solar = Solar.fromDate(now);
+  const lunar = solar.getLunar();
+  const lunarDate = lunar.getDayInChinese();
+  const lunarMonth = lunar.getMonthInChinese();
+  const ganzhiYear = lunar.getYearInGanZhi();
+  const ganzhiMonth = lunar.getMonthInGanZhi();
+  const ganzhiDay = lunar.getDayInGanZhi();
+  const zodiac = lunar.getYearShengXiao();
+
+  // 宜忌
+  const dayYi = lunar.getDayYi();
+  const dayJi = lunar.getDayJi();
+
+  // 节气
+  const currentJieQi = lunar.getJieQi();
+  // 当前节气名（若今天不是节气日，取上一个节气）
+  const jieQiName = currentJieQi || lunar.getPrevJieQi().getName();
+  const nextJieQi = lunar.getNextJieQi();
+  const nextJieQiName = nextJieQi.getName();
+  const nextJieQiSolar = nextJieQi.getSolar();
+  const nextJieQiDate = new Date(nextJieQiSolar.getYear(), nextJieQiSolar.getMonth() - 1, nextJieQiSolar.getDay());
+  const daysToNext = Math.ceil((nextJieQiDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const prevJieQi = lunar.getPrevJieQi();
+  const prevJieQiSolar = prevJieQi.getSolar();
+  const prevJieQiDate = new Date(prevJieQiSolar.getYear(), prevJieQiSolar.getMonth() - 1, prevJieQiSolar.getDay());
+  const totalDays = Math.ceil((nextJieQiDate.getTime() - prevJieQiDate.getTime()) / (1000 * 60 * 60 * 24));
+  const passedDays = Math.ceil((now.getTime() - prevJieQiDate.getTime()) / (1000 * 60 * 60 * 24));
+  const progressPercent = Math.min(100, Math.max(0, (passedDays / totalDays) * 100));
+
+  // 日期格式化
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const weekStr = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][now.getDay()];
+
+  const symbol = getWeatherSymbol(today.weatherCode);
+
+  const html = `
+    <div class="header">
+      <div class="date-block">
+        <div class="solar-date">
+          <span class="year-month">${y}年${m}月</span>
+          ${d}日
+        </div>
+        <div class="lunar-line">
+          农历${lunarMonth}月${lunarDate}
+          <span class="zodiac">${zodiac}年</span>
+        </div>
+        <div class="week-line">${weekStr}　${ganzhiYear}年 ${ganzhiMonth}月 ${ganzhiDay}日</div>
+      </div>
+      <div class="weather-main">
+        <div class="weather-symbol">${symbol}</div>
+        <div class="weather-icon-text">${today.weather || '—'}</div>
+        <div class="temp-main">${today.tempMax != null ? today.tempMax : '—'}<span class="unit">°C</span></div>
+        <div class="temp-range">${today.tempMin != null ? today.tempMin : '—'}° ~ ${today.tempMax != null ? today.tempMax : '—'}°</div>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-label">湿度</div>
+        <div class="detail-value">${today.humidity != null ? today.humidity + '%' : '—'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">风力</div>
+        <div class="detail-value">${today.windDir || ''} ${today.windScale || ''}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">体感</div>
+        <div class="detail-value">${today.feelsLike != null ? today.feelsLike + '°' : '—'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">空气质量</div>
+        <div class="detail-value">${today.aqi != null ? today.aqi + ' ' + (today.aqiLevel || '') : '—'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">气压</div>
+        <div class="detail-value">${today.pressure != null ? today.pressure + 'hPa' : '—'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">能见度</div>
+        <div class="detail-value">${today.visibility != null ? today.visibility + 'km' : '—'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">日出</div>
+        <div class="detail-value">${today.sunrise || '—'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">日落</div>
+        <div class="detail-value">${today.sunset || '—'}</div>
+      </div>
+    </div>
+
+    <div class="almanac">
+      <div class="almanac-title">
+        <span>黄历宜忌</span>
+        <span class="ganzhi">${ganzhiYear}年 ${ganzhiMonth}月 ${ganzhiDay}日</span>
+      </div>
+      <div class="yi-jiu">
+        <div class="yi">
+          <span class="yi-label">宜</span>
+          <span class="yi-content">${(dayYi || []).join('、') || '无'}</span>
+        </div>
+        <div class="ji">
+          <span class="ji-label">忌</span>
+          <span class="ji-content">${(dayJi || []).join('、') || '无'}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="jieqi">
+      <div class="jieqi-title">二十四节气</div>
+      <div class="jieqi-current">
+        当前节气：<span class="current-name">${jieQiName}</span>
+      </div>
+      <div class="jieqi-next">
+        下一节气：<span class="next-name">${nextJieQiName}</span>
+        <span class="countdown">还有 ${daysToNext} 天</span>
+      </div>
+      <div class="jieqi-bar"><div class="jieqi-bar-fill" style="width:${progressPercent}%"></div></div>
+      <div class="jieqi-progress">
+        <span>${prevJieQi.getName()}</span>
+        <span>${nextJieQiName}</span>
+      </div>
+    </div>
+
+    <div class="forecast">
+      <div class="forecast-title">未来五天</div>
+      <div class="forecast-list">
+        ${(data.forecast || []).map(f => `
+          <div class="forecast-day">
+            <div class="day-week">${f.week || ''}</div>
+            <div class="day-weather">${getWeatherSymbol(f.weatherCode)} ${f.weather || ''}</div>
+            <div class="day-temp">
+              <span class="max">${f.tempMax != null ? f.tempMax + '°' : ''}</span>
+              <span class="min">/${f.tempMin != null ? f.tempMin + '°' : ''}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="footer">
+      ${data.city || ''}　|　更新于 ${data.updateTime || ''}　|　Kindle 天气台历
+    </div>
+  `;
+
+  document.getElementById('app').innerHTML = html;
+}
+
+// ===== 加载天气数据 =====
+function loadWeather() {
+  fetch('weather.json?_t=' + Date.now())
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(data => render(data))
+    .catch(err => {
+      document.getElementById('app').innerHTML =
+        '<div class="status-msg">加载天气失败<br><small>' + err.message + '</small><br><br>请确保 weather.json 存在</div>';
+    });
+}
+
+// ===== 启动 =====
+loadWeather();
+
+// ===== 每 10 分钟自动刷新 =====
+setInterval(loadWeather, 10 * 60 * 1000);
+</script>
+</body>
+</html>

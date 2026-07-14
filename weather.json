@@ -1,20 +1,39 @@
 {
-  "current_weather": {
-    "temperature": 5,
-    "weathercode": 2,
-    "winddirection": 270,
-    "windspeed": 12,
-    "is_day": 1
+  "city": "北京",
+  "updateTime": "2026-07-14 15:00",
+  "today": {
+    "date": "2026-07-14",
+    "week": "星期二",
+    "weather": "多云转晴",
+    "weatherCode": "101",
+    "tempMax": 33,
+    "tempMin": 24,
+    "humidity": 65,
+    "windDir": "东南风",
+    "windScale": "3级",
+    "windSpeed": 12,
+    "pressure": 1008,
+    "visibility": 15,
+    "sunrise": "05:10",
+    "sunset": "19:35",
+    "uv": "中等",
+    "aqi": 78,
+    "aqiLevel": "良",
+    "feelsLike": 35
   },
-  "sun": {
-    "sunrise": "07:34",
-    "sunset": "17:03"
-  },
-  "date": {
-    "year": 2026,
-    "month": 1,
-    "day": 8
-  },
-  "timezone": "Asia/Shanghai",
-  "update_time": "2026-01-08T12:00:00"
+  "forecast": [
+    { "date": "2026-07-15", "week": "星期三", "weather": "晴", "weatherCode": "100", "tempMax": 34, "tempMin": 25 },
+    { "date": "2026-07-16", "week": "星期四", "weather": "雷阵雨", "weatherCode": "305", "tempMax": 31, "tempMin": 24 },
+    { "date": "2026-07-17", "week": "星期五", "weather": "阴", "weatherCode": "104", "tempMax": 30, "tempMin": 24 },
+    { "date": "2026-07-18", "week": "星期六", "weather": "多云", "weatherCode": "101", "tempMax": 32, "tempMin": 25 },
+    { "date": "2026-07-19", "week": "星期日", "weather": "晴", "weatherCode": "100", "tempMax": 34, "tempMin": 26 }
+  ],
+  "hourly": [
+    { "time": "16:00", "temp": 33, "weather": "多云" },
+    { "time": "17:00", "temp": 32, "weather": "多云" },
+    { "time": "18:00", "temp": 30, "weather": "晴" },
+    { "time": "19:00", "temp": 28, "weather": "晴" },
+    { "time": "20:00", "temp": 27, "weather": "晴" },
+    { "time": "21:00", "temp": 26, "weather": "晴" }
+  ]
 }
