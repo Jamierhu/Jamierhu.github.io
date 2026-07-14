@@ -1,35 +1,27 @@
 {
   "city": "河北邯郸",
-  "updateTime": "2026-07-14 22:53",
+  "updateTime": "2026-07-15 00:17",
   "today": {
-    "date": "2026-07-14",
-    "week": "星期二",
-    "weather": "小毛毛雨",
-    "weatherCode": "51",
-    "tempMax": 38,
-    "tempMin": 27,
-    "humidity": 50,
+    "date": "2026-07-15",
+    "week": "星期三",
+    "weather": "雷阵雨",
+    "weatherCode": "95",
+    "tempMax": 33,
+    "tempMin": 25,
+    "humidity": 62,
     "windDir": "北风",
-    "windScale": "2级",
-    "windSpeed": 8,
-    "pressure": 1001,
-    "visibility": 11.3,
-    "sunrise": "05:14",
-    "sunset": "19:41",
+    "windScale": "3级",
+    "windSpeed": 14,
+    "pressure": 1002,
+    "visibility": 8.4,
+    "sunrise": "05:15",
+    "sunset": "19:40",
     "uv": "强",
-    "aqi": 90,
-    "aqiLevel": "良",
-    "feelsLike": 35
+    "aqi": 130,
+    "aqiLevel": "轻度污染",
+    "feelsLike": 32
   },
   "forecast": [
-    {
-      "date": "2026-07-15",
-      "week": "星期三",
-      "weather": "雷阵雨",
-      "weatherCode": "95",
-      "tempMax": 33,
-      "tempMin": 25
-    },
     {
       "date": "2026-07-16",
       "week": "星期四",
@@ -61,6 +53,14 @@
       "weatherCode": "1",
       "tempMax": 34,
       "tempMin": 24
+    },
+    {
+      "date": "2026-07-20",
+      "week": "星期一",
+      "weather": "多云",
+      "weatherCode": "2",
+      "tempMax": 36,
+      "tempMin": 26
     }
   ]
 }
