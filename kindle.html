@@ -285,6 +285,34 @@
     margin-top: 8px;
   }
 
+  /* ===== 城市切换栏 ===== */
+  .city-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    background: #000;
+    border: 2px solid #000;
+    margin-bottom: 4px;
+  }
+  .city-btn {
+    flex: 1;
+    min-width: 60px;
+    background: #fff;
+    border: none;
+    padding: 12px 8px;
+    font-size: 20px;
+    font-family: inherit;
+    color: #000;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .city-btn.active {
+    background: #000;
+    color: #fff;
+    font-weight: 700;
+  }
+
   /* ===== 天气图标（纯文字符号，e-ink 友好） ===== */
   .weather-symbol {
     font-size: 48px;
@@ -408,7 +436,15 @@ function render(data) {
 
   const symbol = getWeatherSymbol(today.weatherCode);
 
+  // 城市切换栏
+  const currentCity = data.city || '';
+  const cityBarHtml = (window.CITY_LIST || []).map(c => {
+    const isActive = c.name === currentCity;
+    return `<button class="city-btn${isActive ? ' active' : ''}" onclick="switchCity('${c.name}')">${c.name}</button>`;
+  }).join('');
+
   const html = `
+    <div class="city-bar">${cityBarHtml}</div>
     <div class="header">
       <div class="date-block">
         <div class="solar-date">
@@ -521,18 +557,64 @@ function render(data) {
   document.getElementById('app').innerHTML = html;
 }
 
+// ===== 城市列表与切换 =====
+window.CITY_LIST = [
+  { name: "北京", file: "weather-北京.json" },
+  { name: "上海", file: "weather-上海.json" },
+  { name: "广州", file: "weather-广州.json" },
+  { name: "深圳", file: "weather-深圳.json" },
+  { name: "杭州", file: "weather-杭州.json" },
+  { name: "成都", file: "weather-成都.json" },
+  { name: "武汉", file: "weather-武汉.json" },
+  { name: "西安", file: "weather-西安.json" },
+  { name: "南京", file: "weather-南京.json" },
+  { name: "重庆", file: "weather-重庆.json" },
+];
+
+// 从 localStorage 读取上次选择的城市，默认北京
+function getCurrentCity() {
+  try {
+    const saved = localStorage.getItem('kindle_city');
+    if (saved && window.CITY_LIST.some(c => c.name === saved)) return saved;
+  } catch (e) {}
+  return '北京';
+}
+
+// 切换城市
+function switchCity(name) {
+  try { localStorage.setItem('kindle_city', name); } catch (e) {}
+  loadWeather();
+}
+window.switchCity = switchCity;
+
 // ===== 加载天气数据 =====
 function loadWeather() {
-  fetch('weather.json?_t=' + Date.now())
+  const city = getCurrentCity();
+  const cityInfo = window.CITY_LIST.find(c => c.name === city);
+  // 优先加载城市专属文件，失败时回退到 weather.json
+  const file = cityInfo ? cityInfo.file : 'weather.json';
+  fetch(file + '?_t=' + Date.now())
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     })
     .then(data => render(data))
     .catch(err => {
-      document.getElementById('app').innerHTML =
-        '<div class="status-msg">加载天气失败<br><small>' + err.message + '</small><br><br>请确保 weather.json 存在</div>';
+      // 城市专属文件不存在时回退到默认 weather.json
+      if (file !== 'weather.json') {
+        console.warn(city + ' 数据加载失败，回退到 weather.json:', err.message);
+        return fetch('weather.json?_t=' + Date.now())
+          .then(r => r.json())
+          .then(data => render(data))
+          .catch(e => showError(e));
+      }
+      showError(err);
     });
+}
+
+function showError(err) {
+  document.getElementById('app').innerHTML =
+    '<div class="status-msg">加载天气失败<br><small>' + err.message + '</small><br><br>请确保 weather.json 存在</div>';
 }
 
 // ===== 启动 =====
