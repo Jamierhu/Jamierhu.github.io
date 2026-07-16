@@ -1,6 +1,6 @@
 {
   "city": "河北邯郸",
-  "updateTime": "2026-07-17 01:18",
+  "updateTime": "2026-07-17 02:41",
   "today": {
     "date": "2026-07-17",
     "week": "星期五",
@@ -8,18 +8,18 @@
     "weatherCode": "82",
     "tempMax": 29,
     "tempMin": 20,
-    "humidity": 88,
+    "humidity": 89,
     "windDir": "北风",
     "windScale": "3级",
-    "windSpeed": 17,
+    "windSpeed": 14,
     "pressure": 1001,
-    "visibility": 4.9,
+    "visibility": 2.1,
     "sunrise": "05:16",
     "sunset": "19:39",
-    "uv": "强",
+    "uv": "中等",
     "aqi": 180,
     "aqiLevel": "中度污染",
-    "feelsLike": 30
+    "feelsLike": 27
   },
   "forecast": [
     {
