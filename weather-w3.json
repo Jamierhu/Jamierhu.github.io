@@ -1,6 +1,6 @@
 {
   "city": "山东莘县",
-  "updateTime": "2026-07-17 06:58",
+  "updateTime": "2026-07-17 08:06",
   "today": {
     "date": "2026-07-17",
     "week": "星期五",
@@ -8,15 +8,15 @@
     "weatherCode": "81",
     "tempMax": 28,
     "tempMin": 23,
-    "humidity": 93,
+    "humidity": 94,
     "windDir": "北风",
-    "windScale": "4级",
-    "windSpeed": 21,
+    "windScale": "3级",
+    "windSpeed": 18,
     "pressure": 1001,
     "visibility": 1.2,
     "sunrise": "05:13",
     "sunset": "19:33",
-    "uv": "中等",
+    "uv": "弱",
     "aqi": 250,
     "aqiLevel": "重度污染",
     "feelsLike": 26
