@@ -1,6 +1,6 @@
 {
   "city": "山东莱州",
-  "updateTime": "2026-07-18 01:16",
+  "updateTime": "2026-07-18 02:34",
   "today": {
     "date": "2026-07-18",
     "week": "星期六",
@@ -8,7 +8,7 @@
     "weatherCode": "3",
     "tempMax": 29,
     "tempMin": 21,
-    "humidity": 88,
+    "humidity": 91,
     "windDir": "东北风",
     "windScale": "2级",
     "windSpeed": 6,
