@@ -1,6 +1,6 @@
 {
   "city": "北京昌平",
-  "updateTime": "2026-07-17 08:06",
+  "updateTime": "2026-07-17 11:47",
   "today": {
     "date": "2026-07-17",
     "week": "星期五",
@@ -8,18 +8,18 @@
     "weatherCode": "3",
     "tempMax": 34,
     "tempMin": 24,
-    "humidity": 75,
-    "windDir": "东南风",
-    "windScale": "1级",
-    "windSpeed": 2,
-    "pressure": 1001,
-    "visibility": 9.4,
+    "humidity": 36,
+    "windDir": "南风",
+    "windScale": "2级",
+    "windSpeed": 10,
+    "pressure": 1000,
+    "visibility": 15.1,
     "sunrise": "04:59",
     "sunset": "19:42",
     "uv": "中等",
-    "aqi": 130,
-    "aqiLevel": "轻度污染",
-    "feelsLike": 31
+    "aqi": 60,
+    "aqiLevel": "良",
+    "feelsLike": 36
   },
   "forecast": [
     {
@@ -33,17 +33,17 @@
     {
       "date": "2026-07-19",
       "week": "星期日",
-      "weather": "小毛毛雨",
-      "weatherCode": "51",
-      "tempMax": 34,
-      "tempMin": 23
+      "weather": "雷阵雨",
+      "weatherCode": "95",
+      "tempMax": 33,
+      "tempMin": 22
     },
     {
       "date": "2026-07-20",
       "week": "星期一",
-      "weather": "小毛毛雨",
-      "weatherCode": "51",
-      "tempMax": 34,
+      "weather": "雷阵雨伴冰雹",
+      "weatherCode": "96",
+      "tempMax": 32,
       "tempMin": 23
     },
     {
@@ -51,16 +51,16 @@
       "week": "星期二",
       "weather": "小毛毛雨",
       "weatherCode": "51",
-      "tempMax": 31,
-      "tempMin": 24
+      "tempMax": 30,
+      "tempMin": 23
     },
     {
       "date": "2026-07-22",
       "week": "星期三",
-      "weather": "小毛毛雨",
-      "weatherCode": "51",
-      "tempMax": 31,
-      "tempMin": 23
+      "weather": "雷阵雨",
+      "weatherCode": "95",
+      "tempMax": 30,
+      "tempMin": 24
     }
   ]
 }
