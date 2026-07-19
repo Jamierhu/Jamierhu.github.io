@@ -428,17 +428,64 @@
 </div>
 
 <script>
+// ===== 全局错误处理（避免 Kindle 浏览器静默失败卡在"加载中"） =====
+window.onerror = function(msg, url, line, col, err) {
+  var app = document.getElementById('app');
+  if (app) {
+    app.innerHTML = '<div class="status-msg">脚本错误<br><small>' + msg + '<br>行: ' + line + '</small></div>';
+  }
+  return false;
+};
+
+// ===== Polyfill: padStart（ES2017，Kindle 浏览器不支持） =====
+if (!String.prototype.padStart) {
+  String.prototype.padStart = function(targetLength, padString) {
+    targetLength = targetLength >> 0;
+    padString = String(padString || ' ');
+    var s = String(this);
+    if (s.length >= targetLength) return s;
+    var pad = '';
+    while (pad.length + s.length < targetLength) { pad += padString; }
+    return pad.slice(0, targetLength - s.length) + s;
+  };
+}
+
 // ===== 密码保护 =====
 // 密码哈希（修改 PASSWORD_HASH 来设置你的密码）
 // 默认密码：kindle2024
-// 生成新哈希：在浏览器控制台运行 sha256('你的密码') 然后替换下面的值
-const PASSWORD_HASH = 'c7fffd6770b6f11abc3462d39c5289853859b052055a084df9163290683439ec';
+var PASSWORD_HASH = 'c7fffd6770b6f11abc3462d39c5289853859b052055a084df9163290683439ec';
 
-// 简单的 SHA-256 实现（同步，避免依赖 SubtleCrypto 的异步）
+// 手动 UTF-8 编码（不依赖 TextEncoder，Kindle 浏览器可能不支持）
+function utf8Encode(str) {
+  var bytes = [];
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 0x80) {
+      bytes.push(c);
+    } else if (c < 0x800) {
+      bytes.push(0xC0 | (c >> 6));
+      bytes.push(0x80 | (c & 0x3F));
+    } else if (c < 0xD800 || c >= 0xE000) {
+      bytes.push(0xE0 | (c >> 12));
+      bytes.push(0x80 | ((c >> 6) & 0x3F));
+      bytes.push(0x80 | (c & 0x3F));
+    } else {
+      i++;
+      var c2 = str.charCodeAt(i);
+      c = 0x10000 + (((c & 0x3FF) << 10) | (c2 & 0x3FF));
+      bytes.push(0xF0 | (c >> 18));
+      bytes.push(0x80 | ((c >> 12) & 0x3F));
+      bytes.push(0x80 | ((c >> 6) & 0x3F));
+      bytes.push(0x80 | (c & 0x3F));
+    }
+  }
+  return bytes;
+}
+
+// 纯 JS SHA-256（同步，ES5 兼容）
 function sha256Sync(message) {
-  // 使用一个轻量的纯 JS SHA-256 实现
   function rrot(x, n) { return (x >>> n) | (x << (32 - n)); }
-  const K = new Uint32Array([
+  var K = [
     0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
     0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
     0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
@@ -447,46 +494,45 @@ function sha256Sync(message) {
     0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
     0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
     0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
-  ]);
-  const H = new Uint32Array([
+  ];
+  var H = [
     0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19
-  ]);
-  const msg = new TextEncoder().encode(message);
-  const l = msg.length;
-  const bitLen = l * 8;
-  const k = Math.ceil((l + 9) / 64) * 64;
-  const data = new Uint8Array(k);
-  data.set(msg);
+  ];
+  var msg = utf8Encode(message);
+  var l = msg.length;
+  var bitLen = l * 8;
+  var k = Math.ceil((l + 9) / 64) * 64;
+  var data = new Uint8Array(k);
+  for (var i = 0; i < l; i++) data[i] = msg[i];
   data[l] = 0x80;
-  // 64-bit length (只写低 32 位，足够日常用)
-  const dv = new DataView(data.buffer);
+  var dv = new DataView(data.buffer);
   dv.setUint32(k - 4, bitLen >>> 0, false);
   dv.setUint32(k - 8, Math.floor(bitLen / 0x100000000), false);
 
-  const w = new Uint32Array(64);
-  for (let i = 0; i < k; i += 64) {
-    for (let j = 0; j < 16; j++) w[j] = dv.getUint32(i + j * 4, false);
-    for (let j = 16; j < 64; j++) {
-      const s0 = rrot(w[j-15],7) ^ rrot(w[j-15],18) ^ (w[j-15] >>> 3);
-      const s1 = rrot(w[j-2],17) ^ rrot(w[j-2],19) ^ (w[j-2] >>> 10);
+  var w = new Uint32Array(64);
+  for (var i = 0; i < k; i += 64) {
+    for (var j = 0; j < 16; j++) w[j] = dv.getUint32(i + j * 4, false);
+    for (var j = 16; j < 64; j++) {
+      var s0 = rrot(w[j-15],7) ^ rrot(w[j-15],18) ^ (w[j-15] >>> 3);
+      var s1 = rrot(w[j-2],17) ^ rrot(w[j-2],19) ^ (w[j-2] >>> 10);
       w[j] = (w[j-16] + s0 + w[j-7] + s1) >>> 0;
     }
-    let [a,b,c,d,e,f,g,h] = H;
-    for (let j = 0; j < 64; j++) {
-      const S1 = rrot(e,6) ^ rrot(e,11) ^ rrot(e,25);
-      const ch = (e & f) ^ (~e & g);
-      const t1 = (h + S1 + ch + K[j] + w[j]) >>> 0;
-      const S0 = rrot(a,2) ^ rrot(a,13) ^ rrot(a,22);
-      const maj = (a & b) ^ (a & c) ^ (b & c);
-      const t2 = (S0 + maj) >>> 0;
+    var a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (var j = 0; j < 64; j++) {
+      var S1 = rrot(e,6) ^ rrot(e,11) ^ rrot(e,25);
+      var ch = (e & f) ^ (~e & g);
+      var t1 = (h + S1 + ch + K[j] + w[j]) >>> 0;
+      var S0 = rrot(a,2) ^ rrot(a,13) ^ rrot(a,22);
+      var maj = (a & b) ^ (a & c) ^ (b & c);
+      var t2 = (S0 + maj) >>> 0;
       h = g; g = f; f = e; e = (d + t1) >>> 0;
       d = c; c = b; b = a; a = (t1 + t2) >>> 0;
     }
     H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
     H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
   }
-  let hex = '';
-  for (let i = 0; i < 8; i++) hex += H[i].toString(16).padStart(8, '0');
+  var hex = '';
+  for (var i = 0; i < 8; i++) hex += H[i].toString(16).padStart(8, '0');
   return hex;
 }
 
@@ -499,18 +545,16 @@ function isAuthenticated() {
 
 // 显示密码输入界面
 function showAuthScreen() {
-  document.getElementById('app').innerHTML = `
-    <div class="auth-screen">
-      <div class="auth-locked">🔒</div>
-      <div class="auth-title">Kindle 天气台历</div>
-      <div class="auth-hint">请输入访问密码</div>
-      <input type="password" id="pwdInput" class="auth-input" autocomplete="off" autofocus>
-      <button class="auth-btn" onclick="checkPassword()">进入</button>
-      <div class="auth-error" id="authError"></div>
-    </div>
-  `;
-  // 回车提交
-  const input = document.getElementById('pwdInput');
+  document.getElementById('app').innerHTML =
+    '<div class="auth-screen">' +
+      '<div class="auth-locked">🔒</div>' +
+      '<div class="auth-title">Kindle 天气台历</div>' +
+      '<div class="auth-hint">请输入访问密码</div>' +
+      '<input type="password" id="pwdInput" class="auth-input" autocomplete="off" autofocus>' +
+      '<button class="auth-btn" onclick="checkPassword()">进入</button>' +
+      '<div class="auth-error" id="authError"></div>' +
+    '</div>';
+  var input = document.getElementById('pwdInput');
   if (input) {
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') checkPassword();
@@ -520,11 +564,11 @@ function showAuthScreen() {
 
 // 验证密码
 function checkPassword() {
-  const input = document.getElementById('pwdInput');
-  const err = document.getElementById('authError');
+  var input = document.getElementById('pwdInput');
+  var err = document.getElementById('authError');
   if (!input) return;
-  const pwd = input.value;
-  const hash = sha256Sync(pwd);
+  var pwd = input.value;
+  var hash = sha256Sync(pwd);
   if (hash === PASSWORD_HASH) {
     try { sessionStorage.setItem('kindle_auth', 'ok'); } catch (e) {}
     loadWeather();
@@ -537,199 +581,29 @@ function checkPassword() {
 window.checkPassword = checkPassword;
 
 // ===== 天气代码 → 文字符号映射（e-ink 友好，无彩色） =====
-const WEATHER_SYMBOLS = {
-  // 晴
+var WEATHER_SYMBOLS = {
   '100': '☀', '150': '☀', '151': '☀', '152': '☀',
-  // 多云
   '101': '⛅', '102': '⛅', '103': '⛅',
-  // 阴
   '104': '☁',
-  // 阵雨
   '300': '阵雨', '301': '阵雨',
-  // 雨
   '302': '雷雨', '303': '雷雨', '304': '雷雨', '305': '雨', '306': '雨',
   '307': '雨', '308': '雨', '309': '雨', '310': '雨', '311': '雨', '312': '雨',
   '313': '雪雨', '314': '雪雨', '315': '雪雨', '316': '雪雨', '317': '雪雨',
-  // 雪
   '400': '雪', '401': '雪', '402': '雪', '403': '雪', '404': '雪', '405': '雪',
   '406': '雪', '407': '雪', '408': '雪', '409': '雪', '410': '雪',
-  // 雾霾
   '500': '雾', '501': '雾', '502': '霾', '503': '沙', '504': '沙',
   '507': '沙', '508': '沙',
-  // 默认
   '999': '—'
 };
 
 function getWeatherSymbol(code) {
   if (!code) return '—';
-  const s = WEATHER_SYMBOLS[String(code)];
+  var s = WEATHER_SYMBOLS[String(code)];
   return s || '—';
 }
 
 // ===== 生肖 =====
-const ZODIAC = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
-
-// ===== 渲染主函数 =====
-function render(data) {
-  const today = data.today || {};
-  const now = new Date();
-  const solar = Solar.fromDate(now);
-  const lunar = solar.getLunar();
-  const lunarDate = lunar.getDayInChinese();
-  const lunarMonth = lunar.getMonthInChinese();
-  const ganzhiYear = lunar.getYearInGanZhi();
-  const ganzhiMonth = lunar.getMonthInGanZhi();
-  const ganzhiDay = lunar.getDayInGanZhi();
-  const zodiac = lunar.getYearShengXiao();
-
-  // 宜忌
-  const dayYi = lunar.getDayYi();
-  const dayJi = lunar.getDayJi();
-
-  // 节气
-  const currentJieQi = lunar.getJieQi();
-  // 当前节气名（若今天不是节气日，取上一个节气）
-  const jieQiName = currentJieQi || lunar.getPrevJieQi().getName();
-  const nextJieQi = lunar.getNextJieQi();
-  const nextJieQiName = nextJieQi.getName();
-  const nextJieQiSolar = nextJieQi.getSolar();
-  const nextJieQiDate = new Date(nextJieQiSolar.getYear(), nextJieQiSolar.getMonth() - 1, nextJieQiSolar.getDay());
-  const daysToNext = Math.ceil((nextJieQiDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  const prevJieQi = lunar.getPrevJieQi();
-  const prevJieQiSolar = prevJieQi.getSolar();
-  const prevJieQiDate = new Date(prevJieQiSolar.getYear(), prevJieQiSolar.getMonth() - 1, prevJieQiSolar.getDay());
-  const totalDays = Math.ceil((nextJieQiDate.getTime() - prevJieQiDate.getTime()) / (1000 * 60 * 60 * 24));
-  const passedDays = Math.ceil((now.getTime() - prevJieQiDate.getTime()) / (1000 * 60 * 60 * 24));
-  const progressPercent = Math.min(100, Math.max(0, (passedDays / totalDays) * 100));
-
-  // 日期格式化
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  const weekStr = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][now.getDay()];
-
-  const symbol = getWeatherSymbol(today.weatherCode);
-
-  // 城市切换栏
-  const currentCity = data.city || '';
-  const cityBarHtml = (window.CITY_LIST || []).map(c => {
-    const isActive = c.name === currentCity;
-    return `<button class="city-btn${isActive ? ' active' : ''}" onclick="switchCity('${c.name}')">${c.name}</button>`;
-  }).join('');
-
-  const html = `
-    <div class="city-bar">${cityBarHtml}</div>
-    <div class="header">
-      <div class="date-block">
-        <div class="solar-date">
-          <span class="year-month">${y}年${m}月</span>
-          ${d}日
-        </div>
-        <div class="lunar-line">
-          农历${lunarMonth}月${lunarDate}
-          <span class="zodiac">${zodiac}年</span>
-        </div>
-        <div class="week-line">${weekStr}　${ganzhiYear}年 ${ganzhiMonth}月 ${ganzhiDay}日</div>
-      </div>
-      <div class="weather-main">
-        <div class="weather-symbol">${symbol}</div>
-        <div class="weather-icon-text">${today.weather || '—'}</div>
-        <div class="temp-main">${today.tempMax != null ? today.tempMax : '—'}<span class="unit">°C</span></div>
-        <div class="temp-range">${today.tempMin != null ? today.tempMin : '—'}° ~ ${today.tempMax != null ? today.tempMax : '—'}°</div>
-      </div>
-    </div>
-
-    <div class="detail-grid">
-      <div class="detail-item">
-        <div class="detail-label">湿度</div>
-        <div class="detail-value">${today.humidity != null ? today.humidity + '%' : '—'}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">风力</div>
-        <div class="detail-value">${today.windDir || ''} ${today.windScale || ''}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">体感</div>
-        <div class="detail-value">${today.feelsLike != null ? today.feelsLike + '°' : '—'}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">空气质量</div>
-        <div class="detail-value">${today.aqi != null ? today.aqi + ' ' + (today.aqiLevel || '') : '—'}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">气压</div>
-        <div class="detail-value">${today.pressure != null ? today.pressure + 'hPa' : '—'}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">能见度</div>
-        <div class="detail-value">${today.visibility != null ? today.visibility + 'km' : '—'}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">日出</div>
-        <div class="detail-value">${today.sunrise || '—'}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">日落</div>
-        <div class="detail-value">${today.sunset || '—'}</div>
-      </div>
-    </div>
-
-    <div class="almanac">
-      <div class="almanac-title">
-        <span>黄历宜忌</span>
-        <span class="ganzhi">${ganzhiYear}年 ${ganzhiMonth}月 ${ganzhiDay}日</span>
-      </div>
-      <div class="yi-jiu">
-        <div class="yi">
-          <span class="yi-label">宜</span>
-          <span class="yi-content">${(dayYi || []).join('、') || '无'}</span>
-        </div>
-        <div class="ji">
-          <span class="ji-label">忌</span>
-          <span class="ji-content">${(dayJi || []).join('、') || '无'}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="jieqi">
-      <div class="jieqi-title">二十四节气</div>
-      <div class="jieqi-current">
-        当前节气：<span class="current-name">${jieQiName}</span>
-      </div>
-      <div class="jieqi-next">
-        下一节气：<span class="next-name">${nextJieQiName}</span>
-        <span class="countdown">还有 ${daysToNext} 天</span>
-      </div>
-      <div class="jieqi-bar"><div class="jieqi-bar-fill" style="width:${progressPercent}%"></div></div>
-      <div class="jieqi-progress">
-        <span>${prevJieQi.getName()}</span>
-        <span>${nextJieQiName}</span>
-      </div>
-    </div>
-
-    <div class="forecast">
-      <div class="forecast-title">未来五天</div>
-      <div class="forecast-list">
-        ${(data.forecast || []).map(f => `
-          <div class="forecast-day">
-            <div class="day-week">${f.week || ''}</div>
-            <div class="day-weather">${getWeatherSymbol(f.weatherCode)} ${f.weather || ''}</div>
-            <div class="day-temp">
-              <span class="max">${f.tempMax != null ? f.tempMax + '°' : ''}</span>
-              <span class="min">/${f.tempMin != null ? f.tempMin + '°' : ''}</span>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <div class="footer">
-      ${data.city || ''}　|　更新于 ${data.updateTime || ''}　|　Kindle 天气台历
-    </div>
-  `;
-
-  document.getElementById('app').innerHTML = html;
-}
+var ZODIAC = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
 
 // ===== 城市列表与切换 =====
 // file 字段使用代号 w1-w4，避免在仓库中暴露城市名
@@ -737,14 +611,18 @@ window.CITY_LIST = [
   { name: "北京昌平", file: "weather-w1.json" },
   { name: "河北邯郸", file: "weather-w2.json" },
   { name: "山东莘县", file: "weather-w3.json" },
-  { name: "山东莱州", file: "weather-w4.json" },
+  { name: "山东莱州", file: "weather-w4.json" }
 ];
 
 // 从 localStorage 读取上次选择的城市，默认北京昌平
 function getCurrentCity() {
   try {
-    const saved = localStorage.getItem('kindle_city');
-    if (saved && window.CITY_LIST.some(c => c.name === saved)) return saved;
+    var saved = localStorage.getItem('kindle_city');
+    if (saved && window.CITY_LIST) {
+      for (var i = 0; i < window.CITY_LIST.length; i++) {
+        if (window.CITY_LIST[i].name === saved) return saved;
+      }
+    }
   } catch (e) {}
   return '北京昌平';
 }
@@ -756,34 +634,183 @@ function switchCity(name) {
 }
 window.switchCity = switchCity;
 
-// ===== 加载天气数据 =====
-function loadWeather() {
-  const city = getCurrentCity();
-  const cityInfo = window.CITY_LIST.find(c => c.name === city);
-  // 优先加载城市专属文件，失败时回退到 weather.json
-  const file = cityInfo ? cityInfo.file : 'weather.json';
-  fetch(file + '?_t=' + Date.now())
-    .then(r => {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(data => render(data))
-    .catch(err => {
-      // 城市专属文件不存在时回退到默认 weather.json
-      if (file !== 'weather.json') {
-        console.warn(city + ' 数据加载失败，回退到 weather.json:', err.message);
-        return fetch('weather.json?_t=' + Date.now())
-          .then(r => r.json())
-          .then(data => render(data))
-          .catch(e => showError(e));
+// ===== 渲染主函数 =====
+function render(data) {
+  var today = data.today || {};
+  var now = new Date();
+  var solar = Solar.fromDate(now);
+  var lunar = solar.getLunar();
+  var lunarDate = lunar.getDayInChinese();
+  var lunarMonth = lunar.getMonthInChinese();
+  var ganzhiYear = lunar.getYearInGanZhi();
+  var ganzhiMonth = lunar.getMonthInGanZhi();
+  var ganzhiDay = lunar.getDayInGanZhi();
+  var zodiac = lunar.getYearShengXiao();
+
+  var dayYi = lunar.getDayYi();
+  var dayJi = lunar.getDayJi();
+
+  var currentJieQi = lunar.getJieQi();
+  var jieQiName = currentJieQi || lunar.getPrevJieQi().getName();
+  var nextJieQi = lunar.getNextJieQi();
+  var nextJieQiName = nextJieQi.getName();
+  var nextJieQiSolar = nextJieQi.getSolar();
+  var nextJieQiDate = new Date(nextJieQiSolar.getYear(), nextJieQiSolar.getMonth() - 1, nextJieQiSolar.getDay());
+  var daysToNext = Math.ceil((nextJieQiDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  var prevJieQi = lunar.getPrevJieQi();
+  var prevJieQiSolar = prevJieQi.getSolar();
+  var prevJieQiDate = new Date(prevJieQiSolar.getYear(), prevJieQiSolar.getMonth() - 1, prevJieQiSolar.getDay());
+  var totalDays = Math.ceil((nextJieQiDate.getTime() - prevJieQiDate.getTime()) / (1000 * 60 * 60 * 24));
+  var passedDays = Math.ceil((now.getTime() - prevJieQiDate.getTime()) / (1000 * 60 * 60 * 24));
+  var progressPercent = Math.min(100, Math.max(0, (passedDays / totalDays) * 100));
+
+  var y = now.getFullYear();
+  var m = String(now.getMonth() + 1).padStart(2, '0');
+  var d = String(now.getDate()).padStart(2, '0');
+  var weekStr = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][now.getDay()];
+
+  var symbol = getWeatherSymbol(today.weatherCode);
+  var currentCity = data.city || '';
+
+  // 城市切换栏
+  var cityBarHtml = '';
+  var cityList = window.CITY_LIST || [];
+  for (var i = 0; i < cityList.length; i++) {
+    var c = cityList[i];
+    var isActive = c.name === currentCity;
+    cityBarHtml += '<button class="city-btn' + (isActive ? ' active' : '') +
+      '" onclick="switchCity(\'' + c.name + '\')">' + c.name + '</button>';
+  }
+
+  // 天气详情网格
+  var details = [
+    ['湿度', today.humidity != null ? today.humidity + '%' : '—'],
+    ['风力', (today.windDir || '') + ' ' + (today.windScale || '')],
+    ['体感', today.feelsLike != null ? today.feelsLike + '°' : '—'],
+    ['空气质量', today.aqi != null ? today.aqi + ' ' + (today.aqiLevel || '') : '—'],
+    ['气压', today.pressure != null ? today.pressure + 'hPa' : '—'],
+    ['能见度', today.visibility != null ? today.visibility + 'km' : '—'],
+    ['日出', today.sunrise || '—'],
+    ['日落', today.sunset || '—']
+  ];
+  var detailHtml = '';
+  for (var i = 0; i < details.length; i++) {
+    detailHtml += '<div class="detail-item"><div class="detail-label">' + details[i][0] +
+      '</div><div class="detail-value">' + details[i][1] + '</div></div>';
+  }
+
+  // 宜忌
+  var yiContent = (dayYi || []).join('、') || '无';
+  var jiContent = (dayJi || []).join('、') || '无';
+
+  // 未来天气
+  var forecastHtml = '';
+  var forecast = data.forecast || [];
+  for (var i = 0; i < forecast.length; i++) {
+    var f = forecast[i];
+    forecastHtml += '<div class="forecast-day">' +
+      '<div class="day-week">' + (f.week || '') + '</div>' +
+      '<div class="day-weather">' + getWeatherSymbol(f.weatherCode) + ' ' + (f.weather || '') + '</div>' +
+      '<div class="day-temp">' +
+        '<span class="max">' + (f.tempMax != null ? f.tempMax + '°' : '') + '</span>' +
+        '<span class="min">/' + (f.tempMin != null ? f.tempMin + '°' : '') + '</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  var html =
+    '<div class="city-bar">' + cityBarHtml + '</div>' +
+    '<div class="header">' +
+      '<div class="date-block">' +
+        '<div class="solar-date">' +
+          '<span class="year-month">' + y + '年' + m + '月</span>' + d + '日' +
+        '</div>' +
+        '<div class="lunar-line">农历' + lunarMonth + '月' + lunarDate +
+          '<span class="zodiac">' + zodiac + '年</span>' +
+        '</div>' +
+        '<div class="week-line">' + weekStr + '　' + ganzhiYear + '年 ' + ganzhiMonth + '月 ' + ganzhiDay + '日</div>' +
+      '</div>' +
+      '<div class="weather-main">' +
+        '<div class="weather-symbol">' + symbol + '</div>' +
+        '<div class="weather-icon-text">' + (today.weather || '—') + '</div>' +
+        '<div class="temp-main">' + (today.tempMax != null ? today.tempMax : '—') + '<span class="unit">°C</span></div>' +
+        '<div class="temp-range">' + (today.tempMin != null ? today.tempMin : '—') + '° ~ ' + (today.tempMax != null ? today.tempMax : '—') + '°</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="detail-grid">' + detailHtml + '</div>' +
+    '<div class="almanac">' +
+      '<div class="almanac-title"><span>黄历宜忌</span><span class="ganzhi">' + ganzhiYear + '年 ' + ganzhiMonth + '月 ' + ganzhiDay + '日</span></div>' +
+      '<div class="yi-jiu">' +
+        '<div class="yi"><span class="yi-label">宜</span><span class="yi-content">' + yiContent + '</span></div>' +
+        '<div class="ji"><span class="ji-label">忌</span><span class="ji-content">' + jiContent + '</span></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="jieqi">' +
+      '<div class="jieqi-title">二十四节气</div>' +
+      '<div class="jieqi-current">当前节气：<span class="current-name">' + jieQiName + '</span></div>' +
+      '<div class="jieqi-next">下一节气：<span class="next-name">' + nextJieQiName + '</span><span class="countdown">还有 ' + daysToNext + ' 天</span></div>' +
+      '<div class="jieqi-bar"><div class="jieqi-bar-fill" style="width:' + progressPercent + '%"></div></div>' +
+      '<div class="jieqi-progress"><span>' + prevJieQi.getName() + '</span><span>' + nextJieQiName + '</span></div>' +
+    '</div>' +
+    '<div class="forecast">' +
+      '<div class="forecast-title">未来五天</div>' +
+      '<div class="forecast-list">' + forecastHtml + '</div>' +
+    '</div>' +
+    '<div class="footer">' + (data.city || '') + '　|　更新于 ' + (data.updateTime || '') + '　|　Kindle 天气台历</div>';
+
+  document.getElementById('app').innerHTML = html;
+}
+
+// ===== 加载天气数据（使用 XMLHttpRequest，Kindle 浏览器不支持 fetch） =====
+function loadJson(url, onSuccess, onError) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status >= 200 && xhr.status < 300 || xhr.status === 0) {
+      try {
+        var data = JSON.parse(xhr.responseText);
+        onSuccess(data);
+      } catch (e) {
+        onError(e);
       }
+    } else {
+      onError(new Error('HTTP ' + xhr.status));
+    }
+  };
+  xhr.onerror = function() { onError(new Error('网络错误')); };
+  try {
+    xhr.send();
+  } catch (e) {
+    onError(e);
+  }
+}
+
+function loadWeather() {
+  var city = getCurrentCity();
+  var cityInfo = null;
+  for (var i = 0; i < window.CITY_LIST.length; i++) {
+    if (window.CITY_LIST[i].name === city) { cityInfo = window.CITY_LIST[i]; break; }
+  }
+  var file = cityInfo ? cityInfo.file : 'weather.json';
+  loadJson(file + '?_t=' + Date.now(), function(data) {
+    render(data);
+  }, function(err) {
+    // 城市专属文件不存在时回退到默认 weather.json
+    if (file !== 'weather.json') {
+      loadJson('weather.json?_t=' + Date.now(), function(data) {
+        render(data);
+      }, function(e) { showError(e); });
+    } else {
       showError(err);
-    });
+    }
+  });
 }
 
 function showError(err) {
   document.getElementById('app').innerHTML =
-    '<div class="status-msg">加载天气失败<br><small>' + err.message + '</small><br><br>请确保 weather.json 存在</div>';
+    '<div class="status-msg">加载天气失败<br><small>' + (err && err.message ? err.message : err) +
+    '</small><br><br>请确保 weather.json 存在</div>';
 }
 
 // ===== 启动 =====
