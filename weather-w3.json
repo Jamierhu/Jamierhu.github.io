@@ -1,35 +1,27 @@
 {
   "city": "山东莘县",
-  "updateTime": "2026-07-24 23:02",
+  "updateTime": "2026-07-25 01:05",
   "today": {
-    "date": "2026-07-24",
-    "week": "星期五",
+    "date": "2026-07-25",
+    "week": "星期六",
     "weather": "雷阵雨",
     "weatherCode": "95",
     "tempMax": 30,
     "tempMin": 22,
-    "humidity": 92,
-    "windDir": "北风",
-    "windScale": "1级",
-    "windSpeed": 5,
+    "humidity": 96,
+    "windDir": "西南风",
+    "windScale": "0级",
+    "windSpeed": 1,
     "pressure": 1007,
-    "visibility": 5.8,
+    "visibility": 1.9,
     "sunrise": "05:18",
-    "sunset": "19:29",
+    "sunset": "19:28",
     "uv": "强",
-    "aqi": 130,
-    "aqiLevel": "轻度污染",
-    "feelsLike": 30
+    "aqi": 250,
+    "aqiLevel": "重度污染",
+    "feelsLike": 28
   },
   "forecast": [
-    {
-      "date": "2026-07-25",
-      "week": "星期六",
-      "weather": "雷阵雨",
-      "weatherCode": "95",
-      "tempMax": 30,
-      "tempMin": 22
-    },
     {
       "date": "2026-07-26",
       "week": "星期日",
@@ -60,6 +52,14 @@
       "weather": "雷阵雨伴冰雹",
       "weatherCode": "96",
       "tempMax": 29,
+      "tempMin": 25
+    },
+    {
+      "date": "2026-07-30",
+      "week": "星期四",
+      "weather": "雷阵雨伴冰雹",
+      "weatherCode": "96",
+      "tempMax": 31,
       "tempMin": 25
     }
   ]
