@@ -1,6 +1,6 @@
 {
   "city": "山东莱州",
-  "updateTime": "2026-07-29 00:47",
+  "updateTime": "2026-07-29 02:15",
   "today": {
     "date": "2026-07-29",
     "week": "星期三",
@@ -8,10 +8,10 @@
     "weatherCode": "51",
     "tempMax": 35,
     "tempMin": 26,
-    "humidity": 92,
+    "humidity": 93,
     "windDir": "南风",
     "windScale": "3级",
-    "windSpeed": 15,
+    "windSpeed": 14,
     "pressure": 1011,
     "visibility": 6.8,
     "sunrise": "05:02",
@@ -19,7 +19,7 @@
     "uv": "强",
     "aqi": 130,
     "aqiLevel": "轻度污染",
-    "feelsLike": 31
+    "feelsLike": 32
   },
   "forecast": [
     {
