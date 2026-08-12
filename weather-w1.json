@@ -1,6 +1,6 @@
 {
   "city": "北京昌平",
-  "updateTime": "2026-08-12 22:36",
+  "updateTime": "2026-08-12 23:59",
   "today": {
     "date": "2026-08-12",
     "week": "星期三",
@@ -8,18 +8,18 @@
     "weatherCode": "95",
     "tempMax": 26,
     "tempMin": 23,
-    "humidity": 95,
-    "windDir": "东南风",
+    "humidity": 96,
+    "windDir": "东风",
     "windScale": "1级",
     "windSpeed": 2,
     "pressure": 1008,
-    "visibility": 2.6,
+    "visibility": 1.5,
     "sunrise": "05:23",
     "sunset": "19:16",
     "uv": "弱",
-    "aqi": 180,
-    "aqiLevel": "中度污染",
-    "feelsLike": 30
+    "aqi": 250,
+    "aqiLevel": "重度污染",
+    "feelsLike": 29
   },
   "forecast": [
     {
