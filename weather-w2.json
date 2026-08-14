@@ -1,6 +1,6 @@
 {
   "city": "河北邯郸",
-  "updateTime": "2026-08-15 01:54",
+  "updateTime": "2026-08-15 02:56",
   "today": {
     "date": "2026-08-15",
     "week": "星期六",
@@ -19,7 +19,7 @@
     "uv": "强",
     "aqi": 180,
     "aqiLevel": "中度污染",
-    "feelsLike": 28
+    "feelsLike": 27
   },
   "forecast": [
     {
