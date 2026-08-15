@@ -1,6 +1,6 @@
 {
   "city": "山东莱州",
-  "updateTime": "2026-08-15 17:27",
+  "updateTime": "2026-08-15 17:50",
   "today": {
     "date": "2026-08-15",
     "week": "星期六",
@@ -13,12 +13,12 @@
     "windScale": "2级",
     "windSpeed": 8,
     "pressure": 1003,
-    "visibility": 9.8,
+    "visibility": 11.1,
     "sunrise": "05:16",
     "sunset": "18:53",
     "uv": "强",
-    "aqi": 130,
-    "aqiLevel": "轻度污染",
+    "aqi": 90,
+    "aqiLevel": "良",
     "feelsLike": 32
   },
   "forecast": [
