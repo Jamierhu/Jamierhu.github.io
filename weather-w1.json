@@ -1,6 +1,6 @@
 {
   "city": "北京昌平",
-  "updateTime": "2026-08-17 05:21",
+  "updateTime": "2026-08-17 05:45",
   "today": {
     "date": "2026-08-17",
     "week": "星期一",
@@ -11,9 +11,9 @@
     "humidity": 89,
     "windDir": "北风",
     "windScale": "1级",
-    "windSpeed": 6,
+    "windSpeed": 5,
     "pressure": 1008,
-    "visibility": 0.8,
+    "visibility": 0.6,
     "sunrise": "05:28",
     "sunset": "19:10",
     "uv": "强",
