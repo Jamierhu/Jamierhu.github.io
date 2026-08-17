@@ -1,6 +1,6 @@
 {
   "city": "山东莱州",
-  "updateTime": "2026-08-18 00:29",
+  "updateTime": "2026-08-18 00:58",
   "today": {
     "date": "2026-08-18",
     "week": "星期二",
@@ -19,7 +19,7 @@
     "uv": "强",
     "aqi": 130,
     "aqiLevel": "轻度污染",
-    "feelsLike": 28
+    "feelsLike": 27
   },
   "forecast": [
     {
