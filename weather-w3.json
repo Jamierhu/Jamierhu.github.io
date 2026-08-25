@@ -1,6 +1,6 @@
 {
   "city": "山东莘县",
-  "updateTime": "2026-08-26 06:30",
+  "updateTime": "2026-08-26 06:58",
   "today": {
     "date": "2026-08-26",
     "week": "星期三",
@@ -19,7 +19,7 @@
     "uv": "强",
     "aqi": 130,
     "aqiLevel": "轻度污染",
-    "feelsLike": 30
+    "feelsLike": 31
   },
   "forecast": [
     {
