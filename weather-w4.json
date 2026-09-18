@@ -1,6 +1,6 @@
 {
   "city": "山东莱州",
-  "updateTime": "2026-09-18 07:57",
+  "updateTime": "2026-09-18 12:28",
   "today": {
     "date": "2026-09-18",
     "week": "星期五",
@@ -8,26 +8,26 @@
     "weatherCode": "3",
     "tempMax": 29,
     "tempMin": 19,
-    "humidity": 71,
-    "windDir": "东南风",
-    "windScale": "2级",
-    "windSpeed": 11,
-    "pressure": 1020,
-    "visibility": 12.8,
+    "humidity": 40,
+    "windDir": "西北风",
+    "windScale": "1级",
+    "windSpeed": 4,
+    "pressure": 1019,
+    "visibility": 16.8,
     "sunrise": "05:44",
     "sunset": "18:04",
     "uv": "中等",
-    "aqi": 90,
+    "aqi": 60,
     "aqiLevel": "良",
-    "feelsLike": 23
+    "feelsLike": 31
   },
   "forecast": [
     {
       "date": "2026-09-19",
       "week": "星期六",
-      "weather": "阴",
-      "weatherCode": "3",
-      "tempMax": 30,
+      "weather": "多云",
+      "weatherCode": "2",
+      "tempMax": 29,
       "tempMin": 20
     },
     {
@@ -36,14 +36,14 @@
       "weather": "阴",
       "weatherCode": "3",
       "tempMax": 28,
-      "tempMin": 21
+      "tempMin": 20
     },
     {
       "date": "2026-09-21",
       "week": "星期一",
       "weather": "阴",
       "weatherCode": "3",
-      "tempMax": 29,
+      "tempMax": 28,
       "tempMin": 18
     },
     {
@@ -51,7 +51,7 @@
       "week": "星期二",
       "weather": "晴",
       "weatherCode": "0",
-      "tempMax": 30,
+      "tempMax": 29,
       "tempMin": 16
     },
     {
@@ -59,8 +59,8 @@
       "week": "星期三",
       "weather": "阴",
       "weatherCode": "3",
-      "tempMax": 29,
-      "tempMin": 22
+      "tempMax": 30,
+      "tempMin": 20
     }
   ]
 }
