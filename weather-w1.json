@@ -1,65 +1,65 @@
 {
   "city": "北京昌平",
-  "updateTime": "2026-09-25 23:54",
+  "updateTime": "2026-09-26 03:53",
   "today": {
-    "date": "2026-09-25",
-    "week": "星期五",
+    "date": "2026-09-26",
+    "week": "星期六",
     "weather": "小毛毛雨",
     "weatherCode": "51",
-    "tempMax": 26,
-    "tempMin": 19,
-    "humidity": 92,
-    "windDir": "西北风",
+    "tempMax": 27,
+    "tempMin": 17,
+    "humidity": 95,
+    "windDir": "北风",
     "windScale": "1级",
-    "windSpeed": 3,
-    "pressure": 1012,
-    "visibility": 6.6,
-    "sunrise": "06:05",
-    "sunset": "18:07",
+    "windSpeed": 5,
+    "pressure": 1011,
+    "visibility": 5.6,
+    "sunrise": "06:06",
+    "sunset": "18:06",
     "uv": "中等",
     "aqi": 130,
     "aqiLevel": "轻度污染",
-    "feelsLike": 22
+    "feelsLike": 19
   },
   "forecast": [
     {
-      "date": "2026-09-26",
-      "week": "星期六",
-      "weather": "雷阵雨",
-      "weatherCode": "95",
-      "tempMax": 26,
-      "tempMin": 17
-    },
-    {
       "date": "2026-09-27",
       "week": "星期日",
-      "weather": "小毛毛雨",
-      "weatherCode": "51",
-      "tempMax": 27,
-      "tempMin": 16
+      "weather": "毛毛雨",
+      "weatherCode": "53",
+      "tempMax": 28,
+      "tempMin": 17
     },
     {
       "date": "2026-09-28",
       "week": "星期一",
-      "weather": "多云",
-      "weatherCode": "2",
-      "tempMax": 23,
-      "tempMin": 11
+      "weather": "阴",
+      "weatherCode": "3",
+      "tempMax": 24,
+      "tempMin": 12
     },
     {
       "date": "2026-09-29",
       "week": "星期二",
-      "weather": "阴",
-      "weatherCode": "3",
-      "tempMax": 28,
-      "tempMin": 14
+      "weather": "毛毛雨",
+      "weatherCode": "53",
+      "tempMax": 29,
+      "tempMin": 15
     },
     {
       "date": "2026-09-30",
       "week": "星期三",
       "weather": "晴",
       "weatherCode": "0",
-      "tempMax": 20,
+      "tempMax": 21,
+      "tempMin": 13
+    },
+    {
+      "date": "2026-10-01",
+      "week": "星期四",
+      "weather": "晴",
+      "weatherCode": "0",
+      "tempMax": 23,
       "tempMin": 12
     }
   ]
