@@ -1,66 +1,66 @@
 {
   "city": "河北邯郸",
-  "updateTime": "2026-10-12 23:54",
+  "updateTime": "2026-10-13 06:46",
   "today": {
-    "date": "2026-10-12",
-    "week": "星期一",
-    "weather": "阵雨",
-    "weatherCode": "81",
-    "tempMax": 24,
-    "tempMin": 17,
-    "humidity": 97,
-    "windDir": "西风",
+    "date": "2026-10-13",
+    "week": "星期二",
+    "weather": "晴",
+    "weatherCode": "0",
+    "tempMax": 23,
+    "tempMin": 13,
+    "humidity": 96,
+    "windDir": "西北风",
     "windScale": "2级",
     "windSpeed": 6,
-    "pressure": 1020,
-    "visibility": 4.2,
-    "sunrise": "06:26",
-    "sunset": "17:50",
-    "uv": "弱",
-    "aqi": 180,
-    "aqiLevel": "中度污染",
-    "feelsLike": 18
+    "pressure": 1021,
+    "visibility": 5.8,
+    "sunrise": "06:27",
+    "sunset": "17:49",
+    "uv": "中等",
+    "aqi": 130,
+    "aqiLevel": "轻度污染",
+    "feelsLike": 13
   },
   "forecast": [
     {
-      "date": "2026-10-13",
-      "week": "星期二",
-      "weather": "晴",
-      "weatherCode": "0",
-      "tempMax": 22,
-      "tempMin": 14
-    },
-    {
       "date": "2026-10-14",
       "week": "星期三",
-      "weather": "多云",
-      "weatherCode": "2",
-      "tempMax": 25,
-      "tempMin": 12
+      "weather": "阴",
+      "weatherCode": "3",
+      "tempMax": 26,
+      "tempMin": 13
     },
     {
       "date": "2026-10-15",
       "week": "星期四",
       "weather": "阴",
       "weatherCode": "3",
-      "tempMax": 28,
+      "tempMax": 29,
       "tempMin": 14
     },
     {
       "date": "2026-10-16",
       "week": "星期五",
-      "weather": "阴",
-      "weatherCode": "3",
-      "tempMax": 25,
-      "tempMin": 15
+      "weather": "毛毛雨",
+      "weatherCode": "53",
+      "tempMax": 26,
+      "tempMin": 16
     },
     {
       "date": "2026-10-17",
       "week": "星期六",
-      "weather": "小雨",
-      "weatherCode": "61",
+      "weather": "小阵雨",
+      "weatherCode": "80",
       "tempMax": 19,
       "tempMin": 16
+    },
+    {
+      "date": "2026-10-18",
+      "week": "星期日",
+      "weather": "阴",
+      "weatherCode": "3",
+      "tempMax": 20,
+      "tempMin": 13
     }
   ]
 }
