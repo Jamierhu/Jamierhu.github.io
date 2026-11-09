@@ -1,48 +1,40 @@
 {
   "city": "山东莱州",
-  "updateTime": "2026-11-09 19:01",
+  "updateTime": "2026-11-10 05:33",
   "today": {
-    "date": "2026-11-09",
-    "week": "星期一",
-    "weather": "毛毛雨",
-    "weatherCode": "53",
-    "tempMax": 9,
-    "tempMin": 6,
-    "humidity": 56,
-    "windDir": "西北风",
+    "date": "2026-11-10",
+    "week": "星期二",
+    "weather": "晴",
+    "weatherCode": "0",
+    "tempMax": 14,
+    "tempMin": 4,
+    "humidity": 73,
+    "windDir": "西南风",
     "windScale": "3级",
-    "windSpeed": 14,
-    "pressure": 1035,
-    "visibility": 22.0,
-    "sunrise": "06:32",
-    "sunset": "16:55",
+    "windSpeed": 13,
+    "pressure": 1030,
+    "visibility": 19.4,
+    "sunrise": "06:33",
+    "sunset": "16:54",
     "uv": "中等",
-    "aqi": 30,
-    "aqiLevel": "优",
-    "feelsLike": 4
+    "aqi": 60,
+    "aqiLevel": "良",
+    "feelsLike": 1
   },
   "forecast": [
-    {
-      "date": "2026-11-10",
-      "week": "星期二",
-      "weather": "晴",
-      "weatherCode": "0",
-      "tempMax": 13,
-      "tempMin": 4
-    },
     {
       "date": "2026-11-11",
       "week": "星期三",
       "weather": "晴",
       "weatherCode": "0",
       "tempMax": 16,
-      "tempMin": 3
+      "tempMin": 4
     },
     {
       "date": "2026-11-12",
       "week": "星期四",
-      "weather": "多云",
-      "weatherCode": "2",
+      "weather": "阴",
+      "weatherCode": "3",
       "tempMax": 16,
       "tempMin": 6
     },
@@ -51,16 +43,24 @@
       "week": "星期五",
       "weather": "阴",
       "weatherCode": "3",
-      "tempMax": 17,
-      "tempMin": 8
+      "tempMax": 16,
+      "tempMin": 7
     },
     {
       "date": "2026-11-14",
       "week": "星期六",
-      "weather": "小毛毛雨",
-      "weatherCode": "51",
-      "tempMax": 13,
-      "tempMin": 10
+      "weather": "雾",
+      "weatherCode": "45",
+      "tempMax": 15,
+      "tempMin": 9
+    },
+    {
+      "date": "2026-11-15",
+      "week": "星期日",
+      "weather": "雾",
+      "weatherCode": "45",
+      "tempMax": 15,
+      "tempMin": 8
     }
   ]
 }
