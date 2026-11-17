@@ -1,66 +1,66 @@
 {
   "city": "河北邯郸",
-  "updateTime": "2026-11-17 18:28",
+  "updateTime": "2026-11-18 03:17",
   "today": {
-    "date": "2026-11-17",
-    "week": "星期二",
-    "weather": "小毛毛雨",
-    "weatherCode": "51",
-    "tempMax": 11,
-    "tempMin": 4,
-    "humidity": 79,
-    "windDir": "南风",
-    "windScale": "1级",
-    "windSpeed": 2,
-    "pressure": 1025,
-    "visibility": 6.8,
-    "sunrise": "07:01",
-    "sunset": "17:12",
+    "date": "2026-11-18",
+    "week": "星期三",
+    "weather": "阴",
+    "weatherCode": "3",
+    "tempMax": 9,
+    "tempMin": 2,
+    "humidity": 52,
+    "windDir": "西北风",
+    "windScale": "3级",
+    "windSpeed": 13,
+    "pressure": 1028,
+    "visibility": 15.0,
+    "sunrise": "07:02",
+    "sunset": "17:11",
     "uv": "中等",
-    "aqi": 130,
-    "aqiLevel": "轻度污染",
-    "feelsLike": 8
+    "aqi": 60,
+    "aqiLevel": "良",
+    "feelsLike": 1
   },
   "forecast": [
-    {
-      "date": "2026-11-18",
-      "week": "星期三",
-      "weather": "多云",
-      "weatherCode": "2",
-      "tempMax": 9,
-      "tempMin": 2
-    },
     {
       "date": "2026-11-19",
       "week": "星期四",
       "weather": "晴",
       "weatherCode": "0",
       "tempMax": 12,
-      "tempMin": 1
+      "tempMin": 0
     },
     {
       "date": "2026-11-20",
       "week": "星期五",
-      "weather": "多云",
-      "weatherCode": "2",
-      "tempMax": 13,
-      "tempMin": 2
+      "weather": "晴间多云",
+      "weatherCode": "1",
+      "tempMax": 14,
+      "tempMin": 3
     },
     {
       "date": "2026-11-21",
       "week": "星期六",
-      "weather": "晴",
-      "weatherCode": "0",
-      "tempMax": 7,
-      "tempMin": -1
+      "weather": "晴间多云",
+      "weatherCode": "1",
+      "tempMax": 8,
+      "tempMin": 0
     },
     {
       "date": "2026-11-22",
       "week": "星期日",
-      "weather": "阴",
-      "weatherCode": "3",
+      "weather": "多云",
+      "weatherCode": "2",
       "tempMax": 11,
       "tempMin": -1
+    },
+    {
+      "date": "2026-11-23",
+      "week": "星期一",
+      "weather": "阴",
+      "weatherCode": "3",
+      "tempMax": 9,
+      "tempMin": 1
     }
   ]
 }
